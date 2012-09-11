@@ -2,6 +2,10 @@ source 'http://rubygems.org'
 
 gemspec
 
+gem 'journey', :github => 'rails/journey'
+gem 'activerecord-deprecated_finders', :github => 'rails/activerecord-deprecated_finders'
+gem 'rails', :github => 'rails/rails'
+
 #For some strange reason it's only loaded outside any group
 gem 'jasmine'
 gem 'jasminerice'
@@ -17,8 +21,8 @@ group :test do
 end
 
 group :assets do
-  gem 'sass-rails', '~> 3.2.3'
-  gem 'coffee-rails', '~> 3.2.1'
+  gem 'sass-rails', :github => 'rails/sass-rails'
+  gem 'coffee-rails', :github => 'rails/coffee-rails'
   gem 'uglifier', '>= 1.0.3'
 end
 

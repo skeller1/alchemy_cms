@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency(%q<rails>, ["~> 3.2.5"])
+  #s.add_runtime_dependency(%q<rails>, ["~> 3.2.5"])
   s.add_runtime_dependency(%q<authlogic>)
   s.add_runtime_dependency(%q<awesome_nested_set>, ["~> 2.0"])
   s.add_runtime_dependency(%q<acts-as-taggable-on>, ["~> 2.1"])
@@ -33,8 +33,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<dynamic_form>, ["~> 1.1"])
   s.add_runtime_dependency(%q<jquery-rails>, ["~> 2.0.0"])
   s.add_runtime_dependency(%q<attachment_magic>, ["~> 0.2.1"])
-  s.add_runtime_dependency(%q<sass-rails>, ['~> 3.2.3'])
-  s.add_runtime_dependency(%q<coffee-rails>, ['~> 3.2.1'])
+  #s.add_runtime_dependency(%q<sass-rails>, ['~> 3.2.3'])
+  #s.add_runtime_dependency(%q<coffee-rails>, ['~> 3.2.1'])
   s.add_runtime_dependency(%q<compass-rails>, ['~> 1.0.3'])
   s.add_runtime_dependency(%q<sassy-buttons>, ['~> 0.1.3'])
 
