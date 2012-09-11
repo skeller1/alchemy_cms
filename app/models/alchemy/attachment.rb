@@ -1,20 +1,21 @@
 module Alchemy
   class Attachment < ActiveRecord::Base
 
-    has_many :essence_files, :class_name => 'Alchemy::EssenceFile', :foreign_key => 'attachment_id'
-    has_many :contents, :through => :essence_files
-    has_many :elements, :through => :contents
-    has_many :pages, :through => :elements
+    has_many :essence_files, class_name: 'Alchemy::EssenceFile', foreign_key: 'attachment_id'
+    has_many :contents,      through: :essence_files
+    has_many :elements,      through: :contents
+    has_many :pages,         through: :elements
 
     attr_accessible :uploaded_data, :name, :filename
 
-    stampable(:stamper_class_name => 'Alchemy::User')
+    stampable stamper_class_name: 'Alchemy::User'
 
     has_attachment(
       :storage => :file_system,
       :file_system_path => 'uploads/attachments',
       :size => 0.kilobytes..1000.megabytes
     )
+
     validates_as_attachment
 
     def self.find_paginated(params, per_page)

@@ -15,9 +15,10 @@ module Alchemy
 
     attr_accessible :page_id, :name
 
+    validates_uniqueness_of :name, scope: :page_id
+
     belongs_to :page
-    validates_uniqueness_of :name, :scope => :page_id
-    has_many :elements, :dependent => :destroy, :order => :position
+    has_many   :elements, dependent: :destroy, order: :position
 
     def self.definitions
       cell_yml = ::File.join(::Rails.root, 'config', 'alchemy', 'cells.yml')

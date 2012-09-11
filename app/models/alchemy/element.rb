@@ -15,16 +15,16 @@ module Alchemy
     )
 
     # All Elements inside a cell are a list. All Elements not in cell are in the cell_id.nil list.
-    acts_as_list :scope => [:page_id, :cell_id]
-    stampable(:stamper_class_name => 'Alchemy::User')
+    acts_as_list scope: [:page_id, :cell_id]
+    stampable stamper_class_name: 'Alchemy::User'
 
-    has_many :contents, -> { order :position }, dependent: :destroy
-    belongs_to :cell
-    belongs_to :page
+    has_many                :contents,            -> { order :position }, dependent: :destroy
+    belongs_to              :cell
+    belongs_to              :page
     has_and_belongs_to_many :to_be_sweeped_pages, -> { uniq true }, class_name: 'Alchemy::Page', join_table: 'alchemy_elements_alchemy_pages'
 
     validates_uniqueness_of :position, scope: [:page_id, :cell_id], if: -> e { e.position != nil }
-    validates_presence_of :name, :on => :create
+    validates_presence_of   :name,     on: :create
 
     attr_accessor :create_contents_after_create
 

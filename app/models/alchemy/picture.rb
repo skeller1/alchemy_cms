@@ -1,17 +1,17 @@
 module Alchemy
   class Picture < ActiveRecord::Base
 
-    has_many :essence_pictures, :class_name => 'Alchemy::EssencePicture', :foreign_key => 'picture_id'
-    has_many :contents, :through => :essence_pictures
-    has_many :elements, :through => :contents
-    has_many :pages, :through => :elements
+    has_many :essence_pictures, class_name: 'Alchemy::EssencePicture', foreign_key: 'picture_id'
+    has_many :contents,         through: :essence_pictures
+    has_many :elements,         through: :contents
+    has_many :pages,            through: :elements
 
     acts_as_fleximage do
-      image_directory 'uploads/pictures'
-      image_storage_format Config.get(:image_store_format).to_sym
-      require_image true
-      missing_image_message I18n.t("missing_image")
-      invalid_image_message I18n.t("not a valid image")
+      image_directory          'uploads/pictures'
+      image_storage_format     Config.get(:image_store_format).to_sym
+      require_image            true
+      missing_image_message    I18n.t("missing_image")
+      invalid_image_message    I18n.t("not a valid image")
       output_image_jpg_quality Config.get(:output_image_jpg_quality) if Config.get(:image_output_format) == "jpg"
       unless Config.get(:preprocess_image_resize).blank?
         preprocess_image do |image|
@@ -32,7 +32,7 @@ module Alchemy
       :tag_list
     )
 
-    stampable(:stamper_class_name => 'Alchemy::User')
+    stampable stamper_class_name: 'Alchemy::User'
 
     scope :recent, -> { where("#{self.table_name}.created_at > ?", Time.now - 24.hours).order(:created_at) }
 

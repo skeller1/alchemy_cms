@@ -33,31 +33,31 @@ module Alchemy
     acts_as_nested_set(:dependent => :destroy)
     stampable(:stamper_class_name => 'Alchemy::User')
 
-    has_many :folded_pages
-    has_many :cells, :dependent => :destroy
-    has_many :elements, -> { order :position }, dependent: :destroy
-    has_many :contents, :through => :elements
+    has_many                :folded_pages
+    has_many                :cells,                  dependent: :destroy
+    has_many                :elements,               -> { order :position }, dependent: :destroy
+    has_many                :contents,               through: :elements
     has_and_belongs_to_many :to_be_sweeped_elements, -> { uniq true }, class_name: 'Alchemy::Element', join_table: 'alchemy_elements_alchemy_pages'
-    belongs_to :language
+    belongs_to              :language
 
-    validates_presence_of :name
-    validates_presence_of :page_layout, :unless => :systempage?
-    validates_presence_of :parent_id, :if => proc { Page.count > 1 }
-    validates_length_of :urlname, :minimum => 3, :if => :urlname_entered?
-    validates_uniqueness_of :urlname, :scope => [:language_id, :layoutpage], :if => :urlname_entered?
-    validates :urlname, :exclusion => {:in => RESERVED_URLNAMES}
+    validates_presence_of   :name
+    validates_presence_of   :page_layout,                                     unless: :systempage?
+    validates_presence_of   :parent_id,                                       if: -> { Page.count > 1 }
+    validates_length_of     :urlname,     minimum: 3,                         if: :urlname_entered?
+    validates_uniqueness_of :urlname,     scope: [:language_id, :layoutpage], if: :urlname_entered?
+    validates               :urlname,     exclusion: {in: RESERVED_URLNAMES}
 
     attr_accessor :do_not_autogenerate
     attr_accessor :do_not_sweep
     attr_accessor :do_not_validate_language
 
-    before_validation :set_url_name, :unless => proc { |page| page.systempage? || page.redirects_to_external? }
-    before_save :set_title, :unless => proc { |page| page.systempage? || page.redirects_to_external? || !page.title.blank? }
-    before_save :set_language_code, :unless => :systempage?
-    before_save :set_restrictions_to_child_pages, :if => proc { |page| !page.systempage? && page.restricted_changed? }
-    before_save :inherit_restricted_status, :if => proc { |page| !page.systempage? && page.parent && page.parent.restricted? }
-    after_create :create_cells, :unless => :systempage?
-    after_create :autogenerate_elements, :unless => proc { |page| page.systempage? || page.do_not_autogenerate }
+    before_validation :set_url_name,                    unless: -> page { page.systempage? || page.redirects_to_external? }
+    before_save       :set_title,                       unless: -> page { page.systempage? || page.redirects_to_external? || !page.title.blank? }
+    before_save       :set_language_code,               unless: :systempage?
+    before_save       :set_restrictions_to_child_pages, if:     -> page { !page.systempage? && page.restricted_changed? }
+    before_save       :inherit_restricted_status,       if:     -> page { !page.systempage? && page.parent && page.parent.restricted? }
+    after_create      :create_cells,                    unless: :systempage?
+    after_create      :autogenerate_elements,           unless: -> page { page.systempage? || page.do_not_autogenerate }
 
     scope :language_roots,        -> { where(:language_root => true) }
     scope :layoutpages,           -> { where(:layoutpage => true) }

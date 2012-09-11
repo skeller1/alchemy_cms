@@ -17,11 +17,12 @@ module Alchemy
     )
 
     acts_as_essence(
-      :ingredient_column => :picture,
-      :preview_text_method => :name
+      ingredient_column: :picture,
+      preview_text_method: :name
     )
 
     belongs_to :picture
+
     before_save :replace_newlines
     before_save :fix_crop_from
 

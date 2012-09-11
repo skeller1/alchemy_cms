@@ -10,10 +10,10 @@ module Alchemy
       :position
     )
 
-    belongs_to :essence, :polymorphic => true, :dependent => :destroy
+    belongs_to :essence, polymorphic: true, dependent: :destroy
     belongs_to :element
 
-    stampable(:stamper_class_name => 'Alchemy::User')
+    stampable stamper_class_name: 'Alchemy::User'
 
     acts_as_list
 
