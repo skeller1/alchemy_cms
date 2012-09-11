@@ -1,7 +1,7 @@
 Alchemy CMS
 ===========
 
-[![Build Status](https://secure.travis-ci.org/magiclabs/alchemy_cms.png?branch=master)](http://travis-ci.org/magiclabs/alchemy_cms)
+[![Build Status](https://secure.travis-ci.org/magiclabs/alchemy_cms.png?branch=rails-4)](http://travis-ci.org/magiclabs/alchemy_cms)
 [![Maintenance Status](http://stillmaintained.com/magiclabs/alchemy_cms.png)](http://stillmaintained.com/magiclabs/alchemy_cms)
 [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/magiclabs/alchemy_cms)
 [![Dependency Status](https://gemnasium.com/magiclabs/alchemy_cms.png)](https://gemnasium.com/magiclabs/alchemy_cms)
@@ -9,9 +9,9 @@ Alchemy CMS
 About
 -----
 
-**This branch is a beta development branch. For productive environments use the current rubygems version, or the [latest stable branch (2.2-stable)](https://github.com/magiclabs/alchemy_cms/tree/2.2-stable).**
+**This branch is an early alpha development branch. For productive environments use the current rubygems version, or the [latest stable branch (2.2-stable)](https://github.com/magiclabs/alchemy_cms/tree/2.2-stable).**
 
-Alchemy is a Rails 3 CMS with a flexible content storing architecture.
+Alchemy is a Rails 4 CMS with a flexible content storing architecture.
 
 Read more on the [website](http://alchemy-cms.com) and in the [guidelines](http://guides.alchemy-cms.com).
 
@@ -37,9 +37,11 @@ Features
 Rails Version
 -------------
 
-This version of Alchemy runs with Rails 3.2.6+.
+This version of Alchemy runs with Rails 4.0.0.beta.
 
-If you are looking for a Rails 3.1 compatible version check the 2.2-stable branch.
+If you are looking for a Rails 3.2 compatible version check the 2.2-stable branch.
+
+If you are looking for a Rails 3.1 compatible version check the 2.1-stable branch.
 
 If you are looking for a Rails 3.0 compatible version check the 2.0-stable branch.
 
@@ -48,7 +50,7 @@ If you are looking for a Rails 2.3 compatible version check the 1.6-stable branc
 Ruby Version
 ------------
 
-Alchemy runs under Ruby 1.8.7, Ruby 1.9.2, Ruby 1.9.3 and REE (Ruby Enterprise Edition).
+Alchemy runs with Ruby >= 1.9.2 and recommends Ruby 1.9.3 for best performance.
 
 Installation
 ------------
