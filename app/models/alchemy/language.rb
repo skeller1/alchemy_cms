@@ -28,7 +28,7 @@ module Alchemy
     after_update :unpublish_pages, :if => proc { changes[:public] == [true, false] }
     before_save :remove_old_default, :if => proc { |m| m.default_changed? && m != Language.get_default }
 
-    scope :published, where(:public => true)
+    scope :published, -> { where(:public => true) }
 
     def self.all_for_created_language_trees
       find(Page.language_roots.collect(&:language_id))
@@ -54,7 +54,7 @@ module Alchemy
 
     include Code
 
-    private
+  private
 
     def publicity_of_default_language
       if self.default? && !self.public?

@@ -25,7 +25,7 @@ module Alchemy
     before_save :replace_newlines
     before_save :fix_crop_from
 
-    private
+  private
 
     def fix_crop_from
       write_attribute(:crop_from, self.crop_from.to_s.split('x').map { |number| number.to_i < 0 ? "0" : number }.join('x'))

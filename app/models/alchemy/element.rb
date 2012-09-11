@@ -23,21 +23,21 @@ module Alchemy
     belongs_to :page
     has_and_belongs_to_many :to_be_sweeped_pages, :class_name => 'Alchemy::Page', :uniq => true, :join_table => 'alchemy_elements_alchemy_pages'
 
-    validates_uniqueness_of :position, :scope => [:page_id, :cell_id], :if => lambda { |e| e.position != nil }
+    validates_uniqueness_of :position, scope: [:page_id, :cell_id], if: -> e { e.position != nil }
     validates_presence_of :name, :on => :create
 
     attr_accessor :create_contents_after_create
 
-    after_create :create_contents, :unless => Proc.new { |m| m.create_contents_after_create == false }
+    after_create :create_contents, unless: -> e { e.create_contents_after_create == false }
 
-    scope :trashed, where(:position => nil).order('updated_at DESC')
-    scope :not_trashed, where(Element.arel_table[:position].not_eq(nil))
-    scope :published, where(:public => true)
-    scope :available, published.not_trashed
-    scope :named, lambda { |names| where(:name => names) }
-    scope :excluded, lambda { |names| where(arel_table[:name].not_in(names)) }
-    scope :not_in_cell, where(:cell_id => nil)
-    scope :in_cell, where("#{self.table_name}.cell_id IS NOT NULL")
+    scope :trashed,     -> { where(:position => nil).order('updated_at DESC') }
+    scope :not_trashed, -> { where(Element.arel_table[:position].not_eq(nil)) }
+    scope :published,   -> { where(:public => true) }
+    scope :available,   -> { published.not_trashed }
+    scope :named,       -> names { where(:name => names) }
+    scope :excluded,    -> names { where(arel_table[:name].not_in(names)) }
+    scope :not_in_cell, -> { where(:cell_id => nil) }
+    scope :in_cell,     -> { where("#{self.table_name}.cell_id IS NOT NULL") }
 
     # class methods
     class << self

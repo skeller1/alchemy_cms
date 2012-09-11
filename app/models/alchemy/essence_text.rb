@@ -26,7 +26,7 @@ module Alchemy
       before_save :check_ferret_indexing
     end
 
-    private
+  private
 
     def check_ferret_indexing
       if self.do_not_index

@@ -24,7 +24,7 @@ module Alchemy
 
     before_destroy :unlock_pages
 
-    scope :admins, where(:role => 'admin')
+    scope :admins, -> { where(:role => 'admin') }
 
     ROLES = Config.get(:user_roles)
 
