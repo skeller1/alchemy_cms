@@ -7,8 +7,8 @@ gem 'activerecord-deprecated_finders', :github => 'rails/activerecord-deprecated
 gem 'rails', :github => 'rails/rails'
 
 #For some strange reason it's only loaded outside any group
-gem 'jasmine'
-gem 'jasminerice'
+#gem 'jasmine'
+#gem 'jasminerice'
 
 group :test do
   gem 'sqlite3'               if ENV['DB'].nil? || ENV['DB'] == 'sqlite'
