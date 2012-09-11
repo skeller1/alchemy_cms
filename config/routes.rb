@@ -2,35 +2,35 @@ Alchemy::Engine.routes.draw do
 
   root :to => 'pages#show'
 
-  match '/admin' => redirect(
+  get '/admin' => redirect(
     "#{Alchemy.mount_point}/admin/dashboard"
   )
-  match '/admin/login' => 'user_sessions#login',
+  get '/admin/login' => 'user_sessions#login',
         :as => :login
-  match '/admin/signup' => 'user_sessions#signup',
+  get '/admin/signup' => 'user_sessions#signup',
         :as => :signup
-  match '/admin/leave' => 'user_sessions#leave',
+  get '/admin/leave' => 'user_sessions#leave',
         :as => :leave_admin
-  match '/admin/logout' => 'user_sessions#logout',
+  get '/admin/logout' => 'user_sessions#logout',
         :as => :logout
-  match '/admin/dashboard' => 'admin/dashboard#index',
+  get '/admin/dashboard' => 'admin/dashboard#index',
         :as => :admin_dashboard
 
-  match '/attachment/:id/download(/:name)(.:format)' => 'attachments#download',
+  get '/attachment/:id/download(/:name)(.:format)' => 'attachments#download',
         :as => :download_attachment
 
   # catching legacy download urls
-  match '/wa_files/download/:id' => 'attachments#download'
-  match '/uploads/files/0000/:id/:name(.:suffix)' => 'attachments#download'
+  get '/wa_files/download/:id' => 'attachments#download'
+  get '/uploads/files/0000/:id/:name(.:suffix)' => 'attachments#download'
 
-  match '/attachment/:id/show' => 'attachments#show',
+  get '/attachment/:id/show' => 'attachments#show',
         :as => :show_attachment
 
-  match "/pictures/:id/show(/:size)(/:crop)(/:crop_from/:crop_size)/:name.:format" => 'pictures#show',
+  get "/pictures/:id/show(/:size)(/:crop)(/:crop_from/:crop_size)/:name.:format" => 'pictures#show',
         :as => :show_picture
-  match '/pictures/:id/zoom/:name.:format' => 'pictures#zoom',
+  get '/pictures/:id/zoom/:name.:format' => 'pictures#zoom',
         :as => :zoom_picture
-  match "/pictures/:id/thumbnails/:size(/:crop)(/:crop_from/:crop_size)/:name.:format" => 'pictures#thumbnail',
+  get "/pictures/:id/thumbnails/:size(/:crop)(/:crop_from/:crop_size)/:name.:format" => 'pictures#thumbnail',
         :as => :thumbnail, :defaults => {:format => 'png', :name => "thumbnail"}
 
   resources :messages, :only => [:index, :new, :create]
@@ -140,12 +140,12 @@ Alchemy::Engine.routes.draw do
 
   end
 
-  match '/:lang' => 'pages#show',
+  get '/:lang' => 'pages#show',
         :constraints => {:lang => /[a-z]{2}(-[a-z]{2})?/},
         :as => :show_language_root
 
   # The page show action has to be last route
-  match '(/:lang)(/:level1(/:level2(/:level3)))/:urlname(.:format)' => 'pages#show',
+  get '(/:lang)(/:level1(/:level2(/:level3)))/:urlname(.:format)' => 'pages#show',
         :constraints => {:lang => /[a-z]{2}(-[a-z]{2})?/},
         :as => :show_page
 
