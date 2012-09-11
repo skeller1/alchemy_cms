@@ -9,7 +9,7 @@ module Alchemy
 
       def index
         @size = params[:size].present? ? params[:size] : 'medium'
-        @pictures = Picture.scoped
+        @pictures = Picture.all
         @pictures = @pictures.tagged_with(params[:tagged_with], :any => true) if params[:tagged_with].present?
         case params[:filter]
           when 'recent'

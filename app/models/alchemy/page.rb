@@ -530,7 +530,7 @@ module Alchemy
   private
 
     def next_or_previous(direction = :next, options = {})
-      pages = self.class.scoped
+      pages = self.class.all
       if direction == :previous
         step_direction = ["#{self.class.table_name}.lft < ?", self.lft]
         order_direction = "lft DESC"
