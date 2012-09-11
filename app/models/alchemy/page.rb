@@ -35,9 +35,9 @@ module Alchemy
 
     has_many :folded_pages
     has_many :cells, :dependent => :destroy
-    has_many :elements, :dependent => :destroy, :order => :position
+    has_many :elements, -> { order :position }, dependent: :destroy
     has_many :contents, :through => :elements
-    has_and_belongs_to_many :to_be_sweeped_elements, :class_name => 'Alchemy::Element', :uniq => true, :join_table => 'alchemy_elements_alchemy_pages'
+    has_and_belongs_to_many :to_be_sweeped_elements, -> { uniq true }, class_name: 'Alchemy::Element', join_table: 'alchemy_elements_alchemy_pages'
     belongs_to :language
 
     validates_presence_of :name
