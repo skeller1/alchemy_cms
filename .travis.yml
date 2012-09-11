@@ -1,11 +1,10 @@
 language: ruby
 rvm:
-  - ree
   - 1.9.2
   - 1.9.3
 branches:
   only:
-    - master
+    - rails-4
 before_script:
   - "phantomjs -v"
   - "sh -c 'cd spec/dummy && RAILS_ENV=test bundle exec rake db:create db:schema:load --trace'"
@@ -13,6 +12,3 @@ script: "bundle exec rspec spec"
 env:
   - DB=mysql
   - DB=postgresql
-matrix:
-  allow_failures:
-    - rvm: ree
