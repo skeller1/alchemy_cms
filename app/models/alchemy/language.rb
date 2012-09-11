@@ -17,10 +17,10 @@ module Alchemy
     validates_presence_of   :frontpage_name
     validates_presence_of   :language_code
     validates_uniqueness_of :language_code,                scope: :country_code
-    validates_format_of     :language_code,                with: /^[a-z]{2}$/,  if: -> { language_code.present? }
+    validates_format_of     :language_code,                with: /\A[a-z]{2}\z/,  if: -> { language_code.present? }
     validate                :presence_of_default_language
     validate                :publicity_of_default_language
-    validates_format_of     :country_code,                 with: /^[a-z]{2}$/,  if: -> { country_code.present? }
+    validates_format_of     :country_code,                 with: /\A[a-z]{2}\z/,  if: -> { country_code.present? }
 
     has_many                :pages
 
