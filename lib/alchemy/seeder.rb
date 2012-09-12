@@ -14,14 +14,15 @@ module Alchemy
 
         default_language = Alchemy::Config.get(:default_language)
 
-        lang = Alchemy::Language.find_or_initialize_by_language_code(
+        lang = Alchemy::Language.where(
           :name => default_language['name'],
           :language_code => default_language['code'],
           :frontpage_name => default_language['frontpage_name'],
           :page_layout => default_language['page_layout'],
           :public => true,
           :default => true
-        )
+        ).first_or_initialize
+
         if lang.new_record?
           if lang.save
             log "Created language #{lang.name}."
@@ -32,10 +33,9 @@ module Alchemy
           notices << "Language #{lang.name} was already present."
         end
 
-        root = Alchemy::Page.find_or_initialize_by_name(
-          :name => 'Root',
-          :do_not_sweep => true
-        )
+        root = Alchemy::Page.where(:name => 'Root').first_or_initialize
+        root.do_not_sweep = true
+
         if root.new_record?
           if root.save
             log "Created page #{root.name}."
