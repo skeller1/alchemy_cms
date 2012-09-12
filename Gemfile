@@ -5,6 +5,7 @@ gemspec
 gem 'journey', :github => 'rails/journey'
 gem 'activerecord-deprecated_finders', :github => 'rails/activerecord-deprecated_finders'
 gem 'rails', :github => 'rails/rails'
+gem 'awesome_nested_set', :github => 'tvdeyen/awesome_nested_set'
 
 #For some strange reason it's only loaded outside any group
 #gem 'jasmine'
