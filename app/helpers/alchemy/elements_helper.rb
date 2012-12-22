@@ -2,6 +2,8 @@ module Alchemy
   module ElementsHelper
 
     include Alchemy::EssencesHelper
+    include Alchemy::UrlHelper
+    include Alchemy::ElementsBlockHelper
 
     # Renders all elements from current page.
     #
@@ -15,7 +17,7 @@ module Alchemy
     #   :fallback => {                       # You can use the fallback option as an override. So you can take elements from a glo´bal laout page and only if the user adds an element on current page the local one gets rendered.
     #     :for => 'ELEMENT_NAME',            # The name of the element the fallback is for
     #     :with => 'ELEMENT_NAME',           # (OPTIONAL) the name of element to fallback with
-    #     :from => 'PAGE_LAYOUT'             # The page_layout name from the global page the fallback elements lie on. I.E 'left_column'
+    #     :from => String || Page            # Pass a page_layout name from a page the fallback elements lie on or pass the page object.
     #   }                                    #
     #   :sort_by => Content#name             # A Content name to sort the elements by
     #   :reverse => boolean                  # Reverse the rendering order
@@ -50,19 +52,23 @@ module Alchemy
         warning('Page is nil')
         return ""
       else
-        show_non_public = configuration(:cache_pages) ? false : defined?(current_user)
         if page.class == Array
-          all_elements = page.collect { |p| p.find_elements(options, show_non_public) }.flatten
+          all_elements = page.collect { |p| p.find_elements(options) }.flatten
         else
-          all_elements = page.find_elements(options, show_non_public)
+          all_elements = page.find_elements(options)
         end
-        unless options[:sort_by].blank?
+        if options[:sort_by].present?
           all_elements = all_elements.sort_by { |e| e.contents.detect { |c| c.name == options[:sort_by] }.ingredient }
         end
         element_string = ""
         if options[:fallback]
-          unless all_elements.detect { |e| e.name == options[:fallback][:for] }
-            if from = Page.where(:page_layout => options[:fallback][:from]).with_language(session[:language_id]).first
+          if all_elements.detect { |e| e.name == options[:fallback][:for] }.blank?
+            if options[:fallback][:from].class.name == 'Alchemy::Page'
+              from = options[:fallback][:from]
+            else
+              from = Page.not_restricted.where(:page_layout => options[:fallback][:from]).with_language(session[:language_id]).first
+            end
+            if from
               all_elements += from.elements.named(options[:fallback][:with].blank? ? options[:fallback][:for] : options[:fallback][:with])
             end
           end
@@ -153,18 +159,56 @@ module Alchemy
     # Returns a string for the id attribute of a html element for the given element
     def element_dom_id(element)
       return "" if element.nil?
-      "#{element.name}_#{element.id}"
+      "#{element.name}_#{element.id}".html_safe
     end
 
-    # Renders the data-alchemy-element HTML attribut used for the preview window hover effect.
+    # Renders the HTML tag attributes required for preview mode.
     def element_preview_code(element)
-      return "" if element.nil?
-      " data-alchemy-element='#{element.id}'" if @preview_mode && element.page == @page
+      tag_options(element_preview_code_attributes(element))
+    end
+
+    # Returns a hash containing the HTML tag attributes required for preview mode.
+    def element_preview_code_attributes(element)
+      return {} unless element.present? && @preview_mode && element.page == @page
+      { :'data-alchemy-element' => element.id }
     end
 
     # Returns the full url containing host, page and anchor for the given element
     def full_url_for_element(element)
-      "http://" + request.env["HTTP_HOST"] + "/" + element.page.urlname + "##{element.name}_#{element.id}"
+      "#{current_server}/#{element.page.urlname}##{element_dom_id(element)}"
+    end
+
+    # Returns the element's tags information as a string. Parameters and options
+    # are equivalent to {#element_tags_attributes}.
+    #
+    # @see #element_tags_attributes
+    #
+    # @return [String]
+    #   HTML tag attributes containing the element's tag information.
+    #
+    def element_tags(element, options = {})
+      tag_options(element_tags_attributes(element, options))
+    end
+
+
+    # Returns the element's tags information as an attribute hash.
+    #
+    # @param [Alchemy::Element] element The element.
+    #
+    # @option options [Proc] :formatter
+    #   ('lambda { |tags| tags.join(' ') }')
+    #   Lambda converting array of tags to a string.
+    #
+    # @return [Hash]
+    #   HTML tag attributes containing the element's tag information.
+    #
+    def element_tags_attributes(element, options = {})
+      options = {
+        formatter: lambda { |tags| tags.join(' ') }
+      }.merge(options)
+
+      return {} if !element.taggable? || element.tag_list.blank?
+      { :'data-element-tags' => options[:formatter].call(element.tag_list) }
     end
 
   end

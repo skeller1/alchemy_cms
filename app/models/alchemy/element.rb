@@ -1,7 +1,10 @@
 module Alchemy
   class Element < ActiveRecord::Base
 
-    FORBIDDEN_DEFINITION_ATTRIBUTES = %w(contents available_contents display_name amount picture_gallery)
+    FORBIDDEN_DEFINITION_ATTRIBUTES = %w(contents available_contents amount picture_gallery taggable hint)
+    SKIPPED_ATTRIBUTES_ON_COPY = %w(id position folded created_at updated_at creator_id updater_id cached_tag_list)
+
+    acts_as_taggable
 
     attr_accessible(
       :cell_id,
@@ -9,8 +12,8 @@ module Alchemy
       :folded,
       :name,
       :page_id,
-      :position,
       :public,
+      :tag_list,
       :unique
     )
 
@@ -25,35 +28,37 @@ module Alchemy
 
     validates_uniqueness_of :position, scope: [:page_id, :cell_id], if: -> e { e.position != nil }
     validates_presence_of   :name,     on: :create
+    validates_format_of     :name,     on: :create, with: /\A[a-z0-9_-]+\z/
 
     attr_accessor :create_contents_after_create
 
     after_create :create_contents, unless: -> e { e.create_contents_after_create == false }
 
-    scope :trashed,     -> { where(:position => nil).order('updated_at DESC') }
-    scope :not_trashed, -> { where(Element.arel_table[:position].not_eq(nil)) }
-    scope :published,   -> { where(:public => true) }
-    scope :available,   -> { published.not_trashed }
-    scope :named,       -> names { where(:name => names) }
-    scope :excluded,    -> names { where(arel_table[:name].not_in(names)) }
-    scope :not_in_cell, -> { where(:cell_id => nil) }
-    scope :in_cell,     -> { where("#{self.table_name}.cell_id IS NOT NULL") }
+    scope :trashed,       -> { where(:position => nil).order('updated_at DESC') }
+    scope :not_trashed,   -> { where(Element.arel_table[:position].not_eq(nil)) }
+    scope :published,     -> { where(:public => true) }
+    scope :not_restricted -> { joins(:page).where(alchemy_pages: {restricted: false}) }
+    scope :available,     -> { published.not_trashed }
+    scope :named,         -> names { where(:name => names) }
+    scope :excluded,      -> names { where(arel_table[:name].not_in(names)) }
+    scope :not_in_cell,   -> { where(:cell_id => nil) }
+    scope :in_cell,       -> { where("#{self.table_name}.cell_id IS NOT NULL") }
 
     # class methods
     class << self
 
       # Builds a new element as described in +/config/alchemy/elements.yml+
       def new_from_scratch(attributes)
-        attributes.stringify_keys!
-        return new if attributes['name'].blank?
+        attributes = attributes.dup.symbolize_keys
+        return new if attributes[:name].blank?
         return nil if descriptions.blank?
         # clean the name from cell name
-        attributes['name'] = attributes['name'].split('#').first
-        element_scratch = descriptions.detect { |m| m["name"] == attributes['name'] }
+        attributes[:name] = attributes[:name].split('#').first
+        element_scratch = descriptions.detect { |el| el['name'] == attributes[:name] }
         if element_scratch
-          new(element_scratch.except(*FORBIDDEN_DEFINITION_ATTRIBUTES).merge(attributes))
+          new(element_scratch.merge(attributes).except(*FORBIDDEN_DEFINITION_ATTRIBUTES))
         else
-          raise "Element description for #{attributes['name']} not found. Please check your elements.yml"
+          raise ElementDefinitionError, "Element description for #{attributes[:name]} not found. Please check your elements.yml"
         end
       end
 
@@ -81,6 +86,9 @@ module Alchemy
           raise LoadError, "Could not find elements.yml file! Please run: rails generate alchemy:scaffold"
         end
         element_definitions
+      rescue TypeError => e
+        Rails.logger.warn "\n++++ WARNING: Your elements.yml is empty.\n"
+        []
       end
       alias_method :definitions, :descriptions
 
@@ -146,17 +154,11 @@ module Alchemy
       #   @copy.public? # => false
       #
       def copy(source, differences = {})
-        attributes = source.attributes.except(
-          "id",
-          "position",
-          "folded",
-          "created_at",
-          "updated_at",
-          "creator_id",
-          "updater_id",
-          "cell_id"
-        ).merge(differences.stringify_keys)
+        source.attributes.stringify_keys!
+        differences.stringify_keys!
+        attributes = source.attributes.except(*SKIPPED_ATTRIBUTES_ON_COPY).merge(differences)
         element = self.create!(attributes.merge(:create_contents_after_create => false))
+        element.tag_list = source.tag_list
         source.contents.each do |content|
           new_content = Content.copy(content, :element_id => element.id)
           new_content.move_to_bottom
@@ -309,7 +311,12 @@ module Alchemy
 
     # returns the description of the element with my name in element.yml
     def description
-      self.class.descriptions.detect { |d| d['name'] == self.name }
+      description = self.class.descriptions.detect { |d| d['name'] == self.name }
+      if description.blank?
+        raise ElementDefinitionError, "Could not find element definition for #{self.name}. Please check your elements.yml"
+      else
+        return description
+      end
     end
     alias_method :definition, :description
 
@@ -459,12 +466,12 @@ module Alchemy
       essence_errors.each do |content_name, errors|
         errors.each do |error|
           messages << I18n.t(error,
-                             :scope => [:content_validations, self.name, content_name],
-                             :default => [
-                               "alchemy.content_validations.fields.#{content_name}.#{error}".to_sym,
-                               "alchemy.content_validations.errors.#{error}".to_sym
-                             ],
-                             :field => Content.translated_label_for(content_name)
+            :scope => [:content_validations, self.name, content_name],
+            :default => [
+              "alchemy.content_validations.fields.#{content_name}.#{error}".to_sym,
+              "alchemy.content_validations.errors.#{error}".to_sym
+            ],
+            :field => Content.translated_label_for(content_name)
           )
         end
       end
@@ -497,6 +504,55 @@ module Alchemy
     # returns true if the page this element is displayed on is restricted?
     def restricted?
       page.restricted?
+    end
+
+    # Returns true if the definition of this element has a taggable true value.
+    def taggable?
+      description['taggable'] == true
+    end
+
+    def to_partial_path
+      "alchemy/elements/#{name}_view"
+    end
+
+    # Returns the hint for this element
+    #
+    # To add a hint to an element either pass +hint: true+ to the element definition in its element.yml
+    #
+    # Then the hint itself is placed in the locale yml files.
+    #
+    # Alternativly you can pass the hint itself to the hint key.
+    #
+    # == Locale Example:
+    #
+    #   # elements.yml
+    #   - name: headline
+    #     hint: true
+    #
+    #   # config/locales/de.yml
+    #     de:
+    #       element_hints:
+    #         headline: Lorem ipsum
+    #
+    # == Hint Key Example:
+    #
+    #   - name: headline
+    #     hint: "Lorem ipsum"
+    #
+    # @return String
+    #
+    def hint
+      hint = definition['hint']
+      if hint == true
+        I18n.t(name, scope: :element_hints)
+      else
+        hint
+      end
+    end
+
+    # Returns true if the element has a hint
+    def has_hint?
+      hint.present?
     end
 
   private

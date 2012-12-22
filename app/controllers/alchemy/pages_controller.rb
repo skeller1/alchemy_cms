@@ -1,7 +1,6 @@
 module Alchemy
   class PagesController < Alchemy::BaseController
-
-    rescue_from ActionController::RoutingError, :with => :render_404
+    include Alchemy::FerretSearch
 
     # We need to include this helper because we need the breadcrumb method.
     # And we cannot define the breadcrump method as helper_method, because rspec does not see helper_methods.
@@ -9,6 +8,9 @@ module Alchemy
     # Anyone with a better idea please provide a patch.
     include Alchemy::BaseHelper
 
+    rescue_from ActionController::RoutingError, :with => :render_404
+
+    before_filter :enforce_primary_host_for_site
     before_filter :render_page_or_redirect, :only => [:show, :sitemap]
     before_filter :perform_search, :only => :show, :if => proc { configuration(:ferret) }
 
@@ -18,8 +20,10 @@ module Alchemy
       :cache_path => proc { @page.cache_key(request) },
       :if => proc {
         if @page && Alchemy::Config.get(:cache_pages)
-           pagelayout = PageLayout.get(@page.page_layout)
-           pagelayout['cache'].nil? || pagelayout['cache']
+          pagelayout = PageLayout.get(@page.page_layout)
+          if (pagelayout['cache'].nil? || pagelayout['cache']) && pagelayout['searchresults'] != true
+            true
+          end
         else
           false
         end
@@ -53,26 +57,37 @@ module Alchemy
       end
     end
 
-    protected
+  private
 
+    # Load the current page and store it in @page.
+    #
     def load_page
-      # we need this, because of a dec_auth bug (it calls this method after the before_filter again).
-      return @page if @page
-      if params[:urlname].blank?
-        @page = Page.language_root_for(Language.get_default.id)
+      @page ||= if params[:urlname].present?
+        # Load by urlname. If a language is specified in the request parameters,
+        # scope pages to it to make sure we can raise a 404 if the urlname
+        # is not available in that language.
+        Page.contentpages.where(
+          urlname:       params[:urlname],
+          language_id:   @language.id,
+          language_code: params[:lang] || @language.code
+        ).first
       else
-        if params[:lang].blank?
-          @page = Page.contentpages.find_by_urlname(params[:urlname])
-          store_language_in_session(@page.language) if @page.present?
-          return @page
-        else
-          @page = Page.contentpages.where(
-            :urlname => params[:urlname],
-            :language_id => session[:language_id],  # Make sure that the current language
-            :language_code => params[:lang]         # matches the requested language code.
-          ).first
-        end
+        # No urlname was given, so just load the language root for the
+        # currently active language.
+        Page.language_root_for(@language.id)
       end
+    end
+
+    def enforce_primary_host_for_site
+      if needs_redirect_to_primary_host?
+        redirect_to url_for(host: current_site.host)
+      end
+    end
+
+    def needs_redirect_to_primary_host?
+      current_site.redirect_to_primary_host? &&
+        current_site.host != '*' &&
+        current_site.host != request.host
     end
 
     def render_page_or_redirect
@@ -101,7 +116,7 @@ module Alchemy
         redirect_to main_app.url_for(@page.controller_and_action)
       else
         # setting the language to page.language to be sure it's correct
-        set_language_from(@page.language_id)
+        set_language(@page.language)
         if params[:urlname].blank?
           @root_page = @page
         else
@@ -110,51 +125,12 @@ module Alchemy
       end
     end
 
-    # Performs a search on EssenceRichtext and EssenceText for params['query'].
-    # Only performing the search when ferret is enabled in the alchemy/config.yml and
-    # a Page gets found where the searchresults can be rendered. This Page gets found
-    # when a page_layout is marked for rendering searchresults:
-    # 'searchresults: true' in alchemy/page_layouts.yml
-    def perform_search
-      searchresult_page_layouts = PageLayout.get_all_by_attributes({:searchresults => true})
-      if searchresult_page_layouts.any?
-        @search_result_page = Page.find_by_page_layout_and_public_and_language_id(searchresult_page_layouts.first["name"], true, session[:language_id])
-        if !params[:query].blank? && @search_result_page
-          @search_results = []
-          %w(Alchemy::EssenceText Alchemy::EssenceRichtext).each do |e|
-            @search_results += e.constantize.includes(:contents => {:element => :page}).find_with_ferret(
-              "*#{params[:query]}*",
-              {:limit => :all},
-              {:conditions => [
-                'alchemy_pages.public = ? AND alchemy_pages.layoutpage = ? AND alchemy_pages.restricted = ?',
-                true, false, false
-              ]}
-            )
-          end
-          return @search_results.sort { |y, x| x.ferret_score <=> y.ferret_score } if @search_results.any?
-        end
-      end
-    end
-
-    def find_first_public(page)
-      if page.public == true
-        return page
-      end
-      page.children.each do |child|
-        result = find_first_public(child)
-        if result != nil
-          return result
-        end
-      end
-      return nil
-    end
-
     def redirect_to_public_child
-      @page = find_first_public(@page)
-      if @page.blank?
-        raise_not_found_error
-      else
+      @page = @page.self_and_descendants.published.not_restricted.first
+      if @page
         redirect_page
+      else
+        raise_not_found_error
       end
     end
 

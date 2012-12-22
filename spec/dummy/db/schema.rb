@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120831135441) do
+ActiveRecord::Schema.define(:version => 20121220102223) do
 
   create_table "alchemy_attachments", :force => true do |t|
     t.string   "name"
@@ -20,8 +20,9 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.integer  "size"
     t.integer  "creator_id"
     t.integer  "updater_id"
-    t.datetime "created_at",   :null => false
-    t.datetime "updated_at",   :null => false
+    t.datetime "created_at",      :null => false
+    t.datetime "updated_at",      :null => false
+    t.text     "cached_tag_list"
   end
 
   create_table "alchemy_cells", :force => true do |t|
@@ -49,14 +50,15 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.string   "name"
     t.integer  "position"
     t.integer  "page_id"
-    t.boolean  "public",     :default => true
-    t.boolean  "folded",     :default => false
-    t.boolean  "unique",     :default => false
-    t.datetime "created_at",                    :null => false
-    t.datetime "updated_at",                    :null => false
+    t.boolean  "public",          :default => true
+    t.boolean  "folded",          :default => false
+    t.boolean  "unique",          :default => false
+    t.datetime "created_at",                         :null => false
+    t.datetime "updated_at",                         :null => false
     t.integer  "creator_id"
     t.integer  "updater_id"
     t.integer  "cell_id"
+    t.text     "cached_tag_list"
   end
 
   add_index "alchemy_elements", ["page_id", "position"], :name => "index_elements_on_page_id_and_position"
@@ -64,18 +66,6 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
   create_table "alchemy_elements_alchemy_pages", :id => false, :force => true do |t|
     t.integer "element_id"
     t.integer "page_id"
-  end
-
-  create_table "alchemy_essence_audios", :force => true do |t|
-    t.integer  "attachment_id"
-    t.integer  "width",           :default => 400
-    t.integer  "height",          :default => 300
-    t.boolean  "show_eq",         :default => true
-    t.boolean  "show_navigation", :default => true
-    t.integer  "creator_id"
-    t.integer  "updater_id"
-    t.datetime "created_at",                        :null => false
-    t.datetime "updated_at",                        :null => false
   end
 
   create_table "alchemy_essence_booleans", :force => true do |t|
@@ -106,23 +96,23 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.datetime "updated_at",    :null => false
   end
 
-  create_table "alchemy_essence_flashes", :force => true do |t|
-    t.integer  "attachment_id"
-    t.integer  "width",          :default => 400
-    t.integer  "height",         :default => 300
-    t.string   "player_version", :default => "9.0.28"
-    t.integer  "creator_id"
-    t.integer  "updater_id"
-    t.datetime "created_at",                           :null => false
-    t.datetime "updated_at",                           :null => false
-  end
-
   create_table "alchemy_essence_htmls", :force => true do |t|
     t.text     "source"
     t.integer  "creator_id"
     t.integer  "updater_id"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+  end
+
+  create_table "alchemy_essence_links", :force => true do |t|
+    t.string   "link"
+    t.string   "link_title"
+    t.string   "link_target"
+    t.string   "link_class_name"
+    t.datetime "created_at",      :null => false
+    t.datetime "updated_at",      :null => false
+    t.integer  "creator_id"
+    t.integer  "updater_id"
   end
 
   create_table "alchemy_essence_pictures", :force => true do |t|
@@ -179,19 +169,6 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.datetime "updated_at",                         :null => false
   end
 
-  create_table "alchemy_essence_videos", :force => true do |t|
-    t.integer  "attachment_id"
-    t.integer  "width"
-    t.integer  "height"
-    t.boolean  "allow_fullscreen", :default => true
-    t.boolean  "auto_play",        :default => false
-    t.boolean  "show_navigation",  :default => true
-    t.integer  "creator_id"
-    t.integer  "updater_id"
-    t.datetime "created_at",                          :null => false
-    t.datetime "updated_at",                          :null => false
-  end
-
   create_table "alchemy_folded_pages", :force => true do |t|
     t.integer "page_id"
     t.integer "user_id"
@@ -210,10 +187,12 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.integer  "updater_id"
     t.boolean  "default",        :default => false
     t.string   "country_code",   :default => "",      :null => false
+    t.integer  "site_id"
   end
 
   add_index "alchemy_languages", ["language_code", "country_code"], :name => "index_alchemy_languages_on_language_code_and_country_code"
   add_index "alchemy_languages", ["language_code"], :name => "index_alchemy_languages_on_language_code"
+  add_index "alchemy_languages", ["site_id"], :name => "index_alchemy_languages_on_site_id"
 
   create_table "alchemy_pages", :force => true do |t|
     t.string   "name"
@@ -242,6 +221,7 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.integer  "creator_id"
     t.integer  "updater_id"
     t.integer  "language_id"
+    t.text     "cached_tag_list"
   end
 
   add_index "alchemy_pages", ["language_id"], :name => "index_pages_on_language_id"
@@ -250,16 +230,31 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
 
   create_table "alchemy_pictures", :force => true do |t|
     t.string   "name"
-    t.string   "image_filename"
-    t.integer  "image_width"
-    t.integer  "image_height"
-    t.datetime "created_at",      :null => false
-    t.datetime "updated_at",      :null => false
+    t.string   "image_file_name"
+    t.integer  "image_file_width"
+    t.integer  "image_file_height"
+    t.datetime "created_at",        :null => false
+    t.datetime "updated_at",        :null => false
     t.integer  "creator_id"
     t.integer  "updater_id"
     t.string   "upload_hash"
-    t.string   "cached_tag_list"
+    t.text     "cached_tag_list"
+    t.string   "image_file_uid"
+    t.integer  "image_file_size"
   end
+
+  create_table "alchemy_sites", :force => true do |t|
+    t.string   "host"
+    t.string   "name"
+    t.datetime "created_at",                                  :null => false
+    t.datetime "updated_at",                                  :null => false
+    t.boolean  "public",                   :default => false
+    t.text     "aliases"
+    t.boolean  "redirect_to_primary_host"
+  end
+
+  add_index "alchemy_sites", ["host", "public"], :name => "alchemy_sites_public_hosts_idx"
+  add_index "alchemy_sites", ["host"], :name => "index_alchemy_sites_on_host"
 
   create_table "alchemy_users", :force => true do |t|
     t.string   "firstname"
@@ -285,6 +280,7 @@ ActiveRecord::Schema.define(:version => 20120831135441) do
     t.datetime "updated_at",                                                   :null => false
     t.integer  "creator_id"
     t.integer  "updater_id"
+    t.text     "cached_tag_list"
   end
 
   add_index "alchemy_users", ["perishable_token"], :name => "index_users_on_perishable_token"

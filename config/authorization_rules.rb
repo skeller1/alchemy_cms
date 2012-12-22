@@ -36,7 +36,7 @@ authorization do
     has_permission_on :alchemy_pictures, :to => [:thumbnail]
     has_permission_on :alchemy_admin_pages, :to => [:index, :fold, :edit_page_content, :link]
     has_permission_on :alchemy_admin_elements, :to => [:manage_elements]
-    has_permission_on :alchemy_admin_pictures, :to => [:index, :archive_overlay, :show_in_window]
+    has_permission_on :alchemy_admin_pictures, :to => [:index, :archive_overlay, :show_in_window, :info]
     has_permission_on :alchemy_admin_attachments, :to => [:index, :archive_overlay, :show, :download]
     has_permission_on :alchemy_admin_contents, :to => [:manage_contents]
     has_permission_on :alchemy_admin_essence_pictures, :to => [:manage_picture_essences]
@@ -44,21 +44,27 @@ authorization do
     has_permission_on :alchemy_admin_users, :to => [:index]
     has_permission_on :alchemy_admin_trash, :to => [:index, :clear]
     has_permission_on :alchemy_admin_clipboard, :to => [:index, :insert, :remove, :clear]
+    has_permission_on :alchemy_admin_tags, :to => [:autocomplete]
   end
 
   role :editor do
     includes :author
     has_permission_on :alchemy_admin_attachments, :to => [:manage]
-    has_permission_on :alchemy_admin_pictures, :to => [:manage, :flush, :delete_multiple, :edit_multiple, :update_multiple]
+    has_permission_on :alchemy_admin_pictures, :to => [:create, :read, :update, :flush, :delete_multiple, :edit_multiple, :update_multiple]
+    has_permission_on :alchemy_admin_pictures, :to => [:destroy] do
+      if_attribute :essence_pictures => is { debugger }
+    end
     has_permission_on :alchemy_admin_pages, :to => [:manage_pages]
     has_permission_on :alchemy_admin_layoutpages, :to => [:index]
+    has_permission_on :alchemy_admin_tags, :to => [:manage]
   end
 
   role :admin do
     includes :editor
-    has_permission_on :alchemy_admin_users, :to => [:manage]
+    has_permission_on :alchemy_admin_users, :to => [:manage, :update_role]
     has_permission_on :alchemy_admin_languages, :to => [:manage]
     has_permission_on :authorization_rules, :to => :read
+    has_permission_on :alchemy_admin_sites, :to => [:manage]
   end
 
 end

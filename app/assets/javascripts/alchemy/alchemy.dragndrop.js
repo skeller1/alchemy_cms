@@ -6,8 +6,11 @@ if (typeof(Alchemy) === 'undefined') {
 
   $.extend(Alchemy, {
 
-    SortableElements: function(page_id, form_token) {
-      $('#element_area .sortable_cell').sortable({
+    SortableElements: function(page_id, form_token, selector) {
+      if (typeof(selector) === 'undefined') {
+        selector = '#element_area .sortable_cell';
+      }
+      $(selector).sortable({
         items: 'div.element_editor',
         handle: '.element_handle',
         axis: 'y',
@@ -100,7 +103,7 @@ if (typeof(Alchemy) === 'undefined') {
         $(this).draggable({
           helper: 'clone',
           iframeFix: 'iframe#alchemyPreviewWindow',
-          connectToSortable: cell_classes,
+          connectToSortable: cell_classes.replace(/,.$/, ''),
           start: function(event, ui) {
             $(this).hide().addClass('dragged');
             ui.helper.css({

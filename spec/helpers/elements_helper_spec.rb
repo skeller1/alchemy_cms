@@ -128,10 +128,21 @@ describe Alchemy::ElementsHelper do
     end
 
     context "with option fallback" do
+      before do
+        @another_page = FactoryGirl.create(:public_page, :name => 'Another Page', :page_layout => 'news')
+        @another_element_1 = FactoryGirl.create(:element, :page => @another_page, :name => 'news')
+      end
+
       it "should render the fallback element, when no element with the given name is found" do
-        @page.elements.delete_all
-        @another_element_1 = FactoryGirl.create(:element, :page => @page)
-        helper.render_elements(:fallback => {:for => 'foo', :with => @another_element_1.name, :from => @page.page_layout}).should match(/id="#{@another_element_1.name}_#{@another_element_1.id}"/)
+        helper.render_elements(
+          :fallback => {:for => 'higgs', :with => 'news', :from => 'news'}
+        ).should match(/id="news_#{@another_element_1.id}"/)
+      end
+
+      it "should also take a page object as fallback from" do
+        helper.render_elements(
+          :fallback => {:for => 'higgs', :with => 'news', :from => @another_page}
+        ).should match(/id="news_#{@another_element_1.id}"/)
       end
     end
 
@@ -147,14 +158,52 @@ describe Alchemy::ElementsHelper do
   end
 
   context "in preview mode" do
+    describe '#element_preview_code_attributes' do
+      it "should return the data-alchemy-element HTML attribute for element" do
+        @preview_mode = true
+        helper.element_preview_code_attributes(@element).should == {:'data-alchemy-element' => @element.id}
+      end
 
-    it "should return the data-alchemy-element HTML attribute for element" do
-      @preview_mode = true
-      helper.element_preview_code(@element).should == " data-alchemy-element='#{@element.id}'"
+      it "should return an empty hash if not in preview_mode" do
+        helper.element_preview_code_attributes(@element).should == {}
+      end
     end
 
-    it "should not return the data-alchemy-element HTML attribute if not in preview_mode" do
-      helper.element_preview_code(@element).should_not == " data-alchemy-element='#{@element.id}'"
+    describe '#element_preview_code' do
+      it "should return the data-alchemy-element HTML attribute for element" do
+        assign(:preview_mode, true)
+        helper.element_preview_code(@element).should == " data-alchemy-element=\"#{@element.id}\""
+      end
+
+      it "should not return the data-alchemy-element HTML attribute if not in preview_mode" do
+        helper.element_preview_code(@element).should_not == " data-alchemy-element=\"#{@element.id}\""
+      end
+    end
+  end
+
+  describe '#element_tags' do
+
+    context "element having tags" do
+      before { @element.tag_list = "peter, lustig"; @element.save! }
+
+      context "with no formatter lambda given" do
+        it "should return tag list as HTML data attribute" do
+          helper.element_tags(@element).should == " data-element-tags=\"peter lustig\""
+        end
+      end
+
+      context "with a formatter lambda given" do
+        it "should return a properly formatted HTML data attribute" do
+          helper.element_tags(@element, :formatter => lambda { |tags| tags.join ", " }).
+            should == " data-element-tags=\"peter, lustig\""
+        end
+      end
+    end
+
+    context "element not having tags" do
+      it "should return empty string" do
+        helper.element_tags(@element).should be_blank
+      end
     end
 
   end

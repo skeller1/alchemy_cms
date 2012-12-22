@@ -12,23 +12,25 @@ module Alchemy
       picture.should be_valid
     end
 
+    it "is not valid without image file" do
+      picture = Picture.new
+      picture.should_not be_valid
+    end
+
     describe '#suffix' do
 
       it "should return the suffix of original filename" do
-        pic = stub_model(Picture, :image_filename => 'kitten.JPG')
+        pic = stub_model(Picture, :image_file_name => 'kitten.JPG')
+        pic.stub(:image_file).and_return(OpenStruct.new({:ext => 'jpg'}))
         pic.suffix.should == "jpg"
       end
 
       context "image has no suffix" do
-
-        before(:each) do
-          @pic = stub_model(Picture, :image_filename => 'kitten')
-        end
-
         it "should return empty string" do
-          @pic.suffix.should == ""
+          pic = stub_model(Picture, :image_file_name => 'kitten')
+          pic.stub(:image_file).and_return(OpenStruct.new({:ext => ''}))
+          pic.suffix.should == ""
         end
-
       end
 
     end
@@ -36,32 +38,55 @@ module Alchemy
     describe '#humanized_name' do
 
       it "should return a humanized version of original filename" do
-        pic = stub_model(Picture, :image_filename => 'cute_kitten.JPG')
+        pic = stub_model(Picture, :image_file_name => 'cute_kitten.JPG')
+        pic.stub(:image_file).and_return(OpenStruct.new({:ext => 'jpg'}))
         pic.humanized_name.should == "Cute kitten"
       end
 
       it "should not remove incidents of suffix from filename" do
-        pic = stub_model(Picture, :image_filename => 'cute_kitten_mo.jpgi.JPG')
+        pic = stub_model(Picture, :image_file_name => 'cute_kitten_mo.jpgi.JPG')
+        pic.stub(:image_file).and_return(OpenStruct.new({:ext => 'jpg'}))
         pic.humanized_name.should == "Cute kitten mo.jpgi"
         pic.humanized_name.should_not == "Cute kitten moi"
       end
 
       context "image has no suffix" do
-
-        before(:each) do
-          @pic = stub_model(Picture, :image_filename => 'cute_kitten')
-          @pic.stub!(:suffix).and_return("")
-        end
-
         it "should return humanized name" do
-          @pic.humanized_name.should == "Cute kitten"
+          pic = stub_model(Picture, :image_file_name => 'cute_kitten')
+          pic.stub(:suffix).and_return("")
+          pic.humanized_name.should == "Cute kitten"
         end
-
       end
 
     end
 
-    describe '#self.last_upload' do
+    describe '#security_token' do
+
+      before do
+        @pic = stub_model(Picture, :id => 1)
+      end
+
+      it "should return a sha1 hash" do
+        @pic.security_token.should match(/\b([a-f0-9]{16})\b/)
+      end
+
+      it "should return a 16 chars long hash" do
+        @pic.security_token.length == 16
+      end
+
+      it "should convert crop true value into string" do
+        digest = PictureAttributes.secure({:id => @pic.id, :crop => 'crop'})
+        @pic.security_token(:crop => true).should == digest
+      end
+
+      it "should always include picture id" do
+        digest = PictureAttributes.secure({:id => @pic.id})
+        @pic.security_token.should == digest
+      end
+
+    end
+
+    describe '.last_upload' do
 
       it "should return all pictures that have the same upload-hash as the most recent picture" do
         other_upload = Picture.create!(:image_file => image_file, :upload_hash => '456')
@@ -77,7 +102,7 @@ module Alchemy
 
     end
 
-    describe '#self.recent' do
+    describe '.recent' do
 
       before(:all) do
         now = Time.now
@@ -95,6 +120,20 @@ module Alchemy
         Picture.recent.should_not include(@old_picture)
       end
 
+    end
+
+    describe '#destroy' do
+      context "a picture that is assigned in an essence" do
+
+        let(:essence_picture) { EssencePicture.create }
+        let(:picture) { FactoryGirl.create :picture }
+        before { essence_picture.update_attributes(:picture_id => picture.id) }
+
+        it "should raise error message" do
+          expect { picture.destroy }.to raise_error PictureInUseError
+        end
+
+      end
     end
 
   end

@@ -2,16 +2,21 @@ require 'bundler/capistrano'
 require 'alchemy/capistrano'
 load 'deploy/assets'
 
+# application name
+set :application,               "<%= @app_name %>"
+
 # ssh settings
-<%- if @ssh_user.blank? -%>
+<%- if @ssh_user.blank? || !@store_credentials -%>
 set(:user)                      { Capistrano::CLI.ui.ask('Enter your ssh username: ') }
 <%- else -%>
 set :user,                      "<%= @ssh_user %>"
 <%- end -%>
+<%- if @no_ssh_public_keys -%>
 <%- if @ssh_password.blank? -%>
 set(:password)                  { Capistrano::CLI.password_prompt("Enter the password for #{user}: ") }
 <%- else -%>
 set :password,                  "<%= @ssh_password %>"
+<%- end -%>
 <%- end -%>
 <%- if @ssh_port != "22" && !@store_credentials -%>
 set(:port)                      { Capistrano::CLI.ui.ask('Enter the ssh port: ') }
@@ -26,6 +31,7 @@ role :db,                       "<%= @server %>", :primary => true
 
 # the webserver path
 set :deploy_to,                 "<%= @deploy_path %>"
+set :deploy_via,                :remote_cache
 
 # repository settings
 <%- if @scm == "svn" -%>
@@ -44,8 +50,14 @@ set :repository,                "<%= @repository_url %>"
 set :branch,                    "master"
 <%- end -%>
 
+# rails env
+set :rails_env,                 "production"
+
 # before hooks
 before "deploy:start",          "deploy:seed"
+<%- if @database_type == "mysql" -%>
+before "deploy:migrate",        "alchemy:db:dump"
+<%- end -%>
 before "deploy:create_symlink", "deploy:migrate"
 
 # after hooks
@@ -89,11 +101,14 @@ end
 
 ## defaults
 
-# rails env
-set :rails_env,                 "production"
-
 # enable bundler binstubs
 set :bundle_flags,              "--deployment --binstubs"
 
 # do not use sudo
 set :use_sudo,                  false
+
+# enable ssh-agent forwarding
+ssh_options[:forward_agent] =   true
+
+# Enable git password prompting
+default_run_options[:pty]   =   true

@@ -49,7 +49,12 @@ module Alchemy
           <script type='text/javascript'>
             jQuery(function($) {
               Alchemy.Tinymce.customInits = [];"
-        Alchemy::Tinymce.custom_config_contents.each do |content|
+        custom_config_contents = Alchemy::Tinymce.custom_config_contents
+        content_names = custom_config_contents.collect{ |c| c['name'] }
+        if content_names.uniq.length != content_names.length
+          raise TinymceError, "Duplicated content names with tinymce setting in elements.yml found. Please rename these contents."
+        end
+        custom_config_contents.each do |content|
           next unless content['settings']['tinymce']
           config = Alchemy::Tinymce.init.merge(content['settings']['tinymce'].symbolize_keys)
           config = config.collect { |key, value| "#{key} : #{value.to_json}" }.join(', ')
@@ -74,6 +79,18 @@ module Alchemy
             });
           </script>"
         custom_config_string.html_safe
+      end
+
+      def preview_sizes_for_select
+        options_for_select([
+          'auto',
+          [t('240', :scope => 'preview_sizes'), 240],
+          [t('320', :scope => 'preview_sizes'), 320],
+          [t('480', :scope => 'preview_sizes'), 480],
+          [t('768', :scope => 'preview_sizes'), 768],
+          [t('1024', :scope => 'preview_sizes'), 1024],
+          [t('1280', :scope => 'preview_sizes'), 1280]
+        ])
       end
 
     end

@@ -6,24 +6,29 @@ module Alchemy
 
     protect_from_forgery
 
+    before_filter :set_current_site
     before_filter :set_language
     before_filter :mailer_set_url_options
 
-    helper_method :current_server, :t
+    helper_method :current_server, :current_site, :t
 
     # Returns a host string with the domain the app is running on.
     def current_server
       # For local development server
       if request.port != 80
-        "http://#{request.host}:#{request.port}"
+        "#{request.protocol}#{request.host}:#{request.port}"
         # For remote production server
       else
-        "http://#{request.host}"
+        "#{request.protocol}#{request.host}"
       end
     end
 
+    # Returns the configuratin value of given key.
+    #
+    # Config file is in +config/alchemy/config.yml+
+    #
     def configuration(name)
-      return Alchemy::Config.get(name)
+      Alchemy::Config.get(name)
     end
 
     def multi_language?
@@ -40,6 +45,19 @@ module Alchemy
     end
 
   private
+
+    # Returns the current site.
+    #
+    def current_site
+      @current_site ||= Site.find_for_host(request.host)
+    end
+
+    # Sets the current site in a cvar so the Language model
+    # can be scoped against it.
+    #
+    def set_current_site
+      Site.current = current_site
+    end
 
     # Sets Alchemy's GUI translation to users preffered language and stores it in the session.
     #
@@ -63,46 +81,49 @@ module Alchemy
       end
     end
 
-    # Sets the language for rendering pages in pages controller
-    def set_language
-      if params[:lang].blank? and session[:language_id].blank?
-        set_language_to_default
-      elsif !params[:lang].blank?
-        set_language_from(params[:lang])
-        ::I18n.locale = params[:lang]
-      end
-    end
-
-    def set_language_from(language_code_or_id)
-      if language_code_or_id.is_a?(String) && language_code_or_id.match(/^\d+$/)
-        language_code_or_id = language_code_or_id.to_i
-      end
-      case language_code_or_id.class.name
-      when "String"
-        @language = Language.find_by_code(language_code_or_id)
-      when "Fixnum"
-        @language = Language.find(language_code_or_id)
-      end
-      store_language_in_session(@language)
-    end
-
-    def set_language_to_default
-      @language = Language.get_default
-      if @language
-        store_language_in_session(@language)
+    # Sets the language for rendering pages in pages controller.
+    #
+    def set_language(lang = nil)
+      if lang
+        @language = lang.is_a?(Language) ? lang : load_language_from(lang)
       else
-        raise "No Default Language found! Did you run `rake alchemy:db:seed` task?"
+        # find the best language and remember it for later
+        @language = load_language_from_params ||
+                    load_language_from_session ||
+                    load_language_default
       end
+
+      # store language in session
+      store_language_in_session(@language)
+
+      # switch locale to selected language
+      ::I18n.locale = @language.code
+    end
+
+    def load_language_from_params
+      if params[:lang].present?
+        Language.find_by_code(params[:lang])
+      end
+    end
+
+    def load_language_from_session
+      if session[:language_id].present?
+        Language.find_by_id(session[:language_id])
+      end
+    end
+
+    def load_language_from(language_code_or_id)
+      Language.find_by_id(language_code_or_id) || Language.find_by_code(language_code_or_id)
+    end
+
+    def load_language_default
+      Language.get_default || raise(DefaultLanguageNotFoundError)
     end
 
     def store_language_in_session(language)
       if language && language.id
-        return if language.id == session[:language_id]
+        session[:language_id]   = language.id
         session[:language_code] = language.code
-        session[:language_id] = language.id
-      else
-        logger.warn "!!!! Language not found for #{language.inspect}. Setting to default!"
-        set_language_to_default
       end
     end
 
@@ -123,33 +144,19 @@ module Alchemy
       end
     end
 
-    # Handles the layout rendering
+    # Returns the layout to be used by the current page. This method is being
+    # used in PageController#show's invocation of #render.
     #
-    # Can be used inside the controller´s +layout+ class method
-    #
-    # === Example:
-    #   layout :layout_for_page
-    #
-    # === Usage:
-    # 1. You can pass none or false as url parameter to avoid any layout rendering.
-    # 2. You can pass a layout name of any existing layout file in +app/views/layouts+ folder.
-    #
-    # If no layout name is given, Alchemy tries to render +app/views/layouts/application/+ layout.
-    # If that is not present, Alchemy tries to render +app/views/layouts/alchemy/pages+ layout.
+    # It allows you to request a specific page layout by passing a 'layout' parameter
+    # in a request. If this parameter is set to 'none' or 'false', no layout whatsoever
+    # will be used to render the page; otherwise, a layout by the given name
+    # will be applied.
     #
     def layout_for_page
       if params[:layout] == 'none' || params[:layout] == 'false'
         false
-      elsif !params[:layout].blank?
-        if File.exist?(Rails.root.join('app/views/layouts', "#{params[:layout]}.html.erb"))
-          params[:layout]
-        else
-          raise_not_found_error
-        end
-      elsif File.exist?(Rails.root.join('app/views/layouts', 'application.html.erb'))
-        'application'
       else
-        'alchemy/pages'
+        params[:layout] || 'application'
       end
     end
 
@@ -157,8 +164,29 @@ module Alchemy
       if exception
         logger.info "Rendering 404: #{exception.message}"
       end
-      @page = Page.language_root_for(session[:language_id])
-      render :file => Rails.root.join("public/404.html"), :status => 404, :layout => !@page.nil?
+      render :file => Rails.root.join("public/404.html"), :status => 404, :layout => false
+    end
+
+    # Enforce ssl for login and all admin modules.
+    #
+    # Default is +false+
+    #
+    # === Usage
+    #
+    #   #config.yml
+    #   require_ssl: true
+    #
+    # === Note
+    #
+    # You have to create a ssl certificate if you want to use the ssl protection
+    #
+    def ssl_required?
+      (Rails.env == 'production' || Rails.env == 'staging') && configuration(:require_ssl)
+    end
+
+    # Redirects request to ssl.
+    def enforce_ssl
+      redirect_to url_for(protocol: 'https')
     end
 
   protected
@@ -173,7 +201,7 @@ module Alchemy
           elsif request.xhr?
             respond_to do |format|
               format.js {
-                render :js => "Alchemy.growl('#{t('You are not authorized')}', 'warning'); Alchemy.enableButton('button.button, a.button, input.button');"
+                render :js => "Alchemy.growl('#{t('You are not authorized')}', 'warning'); Alchemy.Buttons.enable();"
               }
               format.html {
                 render :partial => 'alchemy/admin/partials/flash', :locals => {:message => t('You are not authorized'), :flash_type => 'warning'}

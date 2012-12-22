@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'active_record'
 
 module Alchemy
   class Upgrader < Alchemy::Seeder
@@ -17,11 +18,29 @@ module Alchemy
         convert_essence_texts_displayed_as_select_into_essence_selects
         convert_essence_texts_displayed_as_checkbox_into_essence_booleans
         copy_new_config_file
+        removed_richmedia_essences_notice
+        convert_picture_storage
+        upgrade_to_sites
+        removed_standard_set_notice
 
         display_todos
       end
 
     private
+
+      def upgrade_to_sites
+        desc "Creating default site and migrating existing languages to it"
+        if Site.count == 0
+          Alchemy::Site.transaction do
+            site = Alchemy::Site.new(host: '*', name: 'Default Site')
+            site.languages << Alchemy::Language.all
+            site.save!
+            log "Done."
+          end
+        else
+          log "Site(s) already present.", :skip
+        end
+      end
 
       # Creates Language model if it does not exist (Alchemy CMS prior v1.5)
       # Also creates missing associations between pages and languages
@@ -113,8 +132,8 @@ module Alchemy
       def strip_alchemy_from_schema_version_table
         desc "Strip -alchemy suffix from schema_version table."
         database_yml = YAML.load_file(Rails.root.join("config", "database.yml"))
-        connection = Mysql2::Client.new(database_yml.fetch(Rails.env.to_s).symbolize_keys)
-        connection.query "UPDATE schema_migrations SET `schema_migrations`.`version` = REPLACE(`schema_migrations`.`version`,'-alchemy','')"
+        adapter = ActiveRecord::Base.establish_connection(database_yml.fetch(Rails.env.to_s).symbolize_keys)
+        adapter.connection.update("UPDATE schema_migrations SET version = REPLACE(`schema_migrations`.`version`,'-alchemy','')")
       end
 
       def convert_essence_texts_displayed_as_select_into_essence_selects
@@ -180,15 +199,65 @@ module Alchemy
       end
 
       def copy_new_config_file
-        desc "Copy config file"
-        old_config_file = Rails.root.join('config/alchemy/config.yml')
-        if File.exist?(old_config_file)
-          FileUtils.mv old_config_file, Rails.root.join('config/alchemy/config.yml.old')
-          log "Backed up old config file"
+        desc "Copy configuration file."
+        config_file = Rails.root.join('config/alchemy/config.yml')
+        default_config = File.join(File.dirname(__FILE__), '../../config/alchemy/config.yml')
+        if FileUtils.identical? default_config, config_file
+          log "Configuration file already present.", :skip
+        else
+          log "Custom configuration file found."
+          FileUtils.cp default_config, Rails.root.join('config/alchemy/config.yml.defaults')
+          log "Copied new default configuration file."
+          todo "Check the default configuration file (./config/alchemy/config.yml.defaults) for new configuration options and insert them into your config file."
         end
-        FileUtils.cp File.join(File.dirname(__FILE__), '../../config/alchemy/config.yml'), old_config_file
-        log "Copied new config file"
-        todo "Check the config/alchemy/config.yml.old file for custom configuration options and insert them into the new config file."
+      end
+
+      def removed_richmedia_essences_notice
+        warn = <<-WARN
+We removed the EssenceAudio, EssenceFlash and EssenceVideo essences from Alchemy core!
+In order to get the essences back, install the `alchemy-richmedia-essences` gem.
+
+gem 'alchemy-richmedia-essences'
+
+We left the tables in your database, you can simply drop them if you don't use these essences in your project.
+
+drop_table :alchemy_essence_audios
+drop_table :alchemy_essence_flashes
+drop_table :alchemy_essence_videos
+WARN
+        todo warn
+      end
+
+      def convert_picture_storage
+        desc "Convert the picture storage"
+        converted_images = []
+        images = Dir.glob Rails.root.join 'uploads/pictures/**/*.*'
+        if images.blank?
+          log "No pictures found", :skip
+        else
+          images.each do |image|
+            image_uid = image.gsub(/#{Rails.root.to_s}\/uploads\/pictures\//, '')
+            image_id = image_uid.split('/').last.split('.').first
+            picture = Alchemy::Picture.find_by_id(image_id)
+            if picture && picture.image_file_uid.blank?
+              picture.image_file_uid = image_uid
+              picture.image_file_size = File.new(image).size
+              if picture.save!
+                log "Converted #{image_uid}"
+              end
+            else
+              log "Picture with id #{image_id} not found or already converted.", :skip
+            end
+          end
+        end
+      end
+
+      def removed_standard_set_notice
+        warn = <<-WARN
+We removed the standard set from Alchemy core!
+In order to get the standard set back, install the `alchemy-demo_kit` gem.
+WARN
+        todo warn
       end
 
     end

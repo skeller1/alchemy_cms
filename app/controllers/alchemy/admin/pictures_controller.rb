@@ -10,7 +10,7 @@ module Alchemy
       def index
         @size = params[:size].present? ? params[:size] : 'medium'
         @pictures = Picture.all
-        @pictures = @pictures.tagged_with(params[:tagged_with], :any => true) if params[:tagged_with].present?
+        @pictures = @pictures.tagged_with(params[:tagged_with]) if params[:tagged_with].present?
         case params[:filter]
           when 'recent'
             @pictures = @pictures.recent
@@ -46,7 +46,7 @@ module Alchemy
           :upload_hash => params[:upload_hash]
         )
         @picture.name = @picture.humanized_name
-        @picture.save
+        @picture.save!
         @size = params[:size] || 'medium'
         if in_overlay?
           @while_assigning = true
@@ -58,12 +58,13 @@ module Alchemy
         end
         @pictures = Picture.find_paginated(params, pictures_per_page_for_size(@size))
         @message = t('Picture uploaded succesfully', :name => @picture.name)
-        # Are we using the Flash uploader? Or the plain html file uploader?
+        # Are we using the single file uploader?
         if params[Rails.application.config.session_options[:key]].blank?
           flash[:notice] = @message
-          #redirect_to :back
-          #TODO temporary workaround; has to be fixed.
           redirect_to admin_pictures_path(:filter => 'last_upload')
+        else
+          # Or the mutliple file uploader?
+          render # create.js.erb template
         end
       end
 
@@ -103,14 +104,19 @@ module Alchemy
       def delete_multiple
         if request.delete? && params[:picture_ids].present?
           pictures = Picture.find(params[:picture_ids])
-          names = pictures.map(&:name).to_sentence
+          names = []
           pictures.each do |picture|
+            next unless picture.deletable?
+            names << picture.name
             picture.destroy
           end
-          flash[:notice] = t("Pictures deleted successfully", :names => names)
+          flash[:notice] = t("Pictures deleted successfully", :names => names.to_sentence)
         else
           flash[:notice] = t("Could not delete Pictures")
         end
+      rescue Exception => e
+        flash[:error] = e.message
+      ensure
         redirect_to_index
       end
 
@@ -119,16 +125,25 @@ module Alchemy
         name = @picture.name
         @picture.destroy
         flash[:notice] = t("Picture deleted successfully", :name => name)
+      rescue Exception => e
+        flash[:error] = e.message
+      ensure
         @redirect_url = admin_pictures_path(:per_page => params[:per_page], :page => params[:page], :query => params[:query])
-        render :action => :redirect
+        render :redirect
       end
 
       def flush
-        FileUtils.rm_rf Rails.root.join('public', Alchemy.mount_point, 'pictures')
+        # FileUtils.rm_rf only takes arrays of folders...
+        FileUtils.rm_rf Dir.glob(Rails.root.join('public', Alchemy.mount_point, 'pictures', '*'))
         @notice = t('Picture cache flushed')
       end
 
       def show_in_window
+        @picture = Picture.find(params[:id])
+        render :layout => false
+      end
+
+      def info
         @picture = Picture.find(params[:id])
         render :layout => false
       end

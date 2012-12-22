@@ -31,6 +31,7 @@ FactoryGirl.define do
     frontpage_name 'Intro'
     page_layout 'intro'
     public true
+    site { Alchemy::Site.first }
 
     factory :klingonian do
       name 'Klingonian'
@@ -93,8 +94,22 @@ FactoryGirl.define do
   factory :picture, :class => 'Alchemy::Picture' do
     image_file File.new(File.expand_path('../support/image.png', __FILE__))
     name 'image'
-    image_filename 'image.png'
+    image_file_name 'image.png'
     upload_hash Time.now.hash
   end
 
+  factory :event do
+    name 'My Event'
+    hidden_name 'not shown'
+    starts_at DateTime.new(2012, 03, 02, 8, 15)
+    ends_at DateTime.new(2012, 03, 02, 19, 30)
+    description "something\nfancy"
+    published false
+    entrance_fee 12.3
+  end
+
+  factory :site, class: 'Alchemy::Site' do
+    name 'A Site'
+    host 'domain.com'
+  end
 end

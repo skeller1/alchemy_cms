@@ -1,9 +1,12 @@
+/*
+ *= require_self
+ */
 @import "alchemy/defaults";
 
 body, td, pre {
   color: $text-color;
   font: $default-font-style;
-  margin: $default-margin;
+  margin: 2*$default-margin;
 }
 
 body {

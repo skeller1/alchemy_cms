@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <title><%= render_alchemy_title %></title>
     <%= csrf_meta_tag %>
-    <%= stylesheet_link_tag('alchemy/alchemy', :media => 'screen') %>
+    <%= stylesheet_link_tag('alchemy/admin', :media => 'screen') %>
     <%= stylesheet_link_tag('alchemy/print', :media => 'print') %>
     <%= yield :stylesheets %>
     <script type="text/javascript" charset="utf-8">
+
+      // Setting TinyMCE path.
       var tinyMCEPreInit = {
         base: '<%= Rails.application.config.assets.prefix %>/tiny_mce',
         suffix: ''
       };
+
+      // Initialize Alchemys JavaScript framework.
+      var Alchemy = {};
+      Alchemy.locale = '<%= ::I18n.locale %>';
+      Alchemy.current_url = '<%= url_for.html_safe %>';
+
     </script>
     <%= javascript_include_tag('alchemy/alchemy') %>
     <%= yield :javascript_includes %>
@@ -60,7 +68,7 @@
         <%= yield(:toolbar) %>
       </div>
       <div id="user_info">
-        <%= select_tag 'change_locale', options_for_select(::I18n.available_locales.map { |l| [l.to_s.upcase, l] }, ::I18n.locale), :class => 'alchemy_select tiny' %>
+        <%= select_tag 'change_locale', options_for_select(::I18n.available_locales.map { |l| [l.to_s.upcase, l] }, ::I18n.locale), :class => 'alchemy_selectbox tiny' %>
         <%= t('Logged in as') %> <%= current_user.name %>
       </div>
     </div>
@@ -70,35 +78,5 @@
       <%= yield %>
     </div>
     <%= yield(:javascripts) %>
-    <script type="text/javascript" charset="utf-8">
-      jQuery(function($) {
-        // Preloading all background images from CSS files.
-        $.preloadCssImages();
-        $('html').removeClass('no-js');
-        Alchemy.locale = '<%= ::I18n.locale %>';
-        Alchemy.resizeFrame();
-        Alchemy.Tooltips();
-        Alchemy.SelectBox();
-        Alchemy.Datepicker();
-        if ($('#flash_notices').length > 0) {
-          Alchemy.Growler.fade();
-        }
-        $('a.please_wait, form button.button, form .icon_button, #main_navi a.main_navi_entry, #sub_navigation .subnavi_tab a, .pagination a').not('*[data-alchemy-confirm], #subnav_additions .subnavi_tab button').click(function() {
-          Alchemy.pleaseWaitOverlay();
-        });
-        // Hack for enabling tab focus for a's styled as button
-        $('a.button').attr({tabindex: 0});
-
-        // Locale select handler
-        $('select#change_locale').on('change', function(e) {
-          var url = '<%= url_for.html_safe %>';
-          delimiter = url.match(/\?/) ? '&' : '?';
-          window.location = url + delimiter + 'locale=' + $(this).val();
-        });
-      });
-      jQuery(window).resize(function() {
-        Alchemy.resizeFrame();
-      });
-    </script>
   </body>
 </html>

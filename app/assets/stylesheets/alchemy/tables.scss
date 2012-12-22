@@ -1,0 +1,203 @@
+table {
+  border-style: none;
+  border-spacing: 0 $default-padding;
+  padding: 0;
+  font-size: inherit;
+  width: 100%;
+
+  td, th {
+    padding: $default-padding;
+    vertical-align: top;
+    line-height: 18px;
+
+    &.wrap-text {
+      white-space: normal !important;
+    }
+  }
+
+  th {
+    white-space: nowrap;
+    text-align: left;
+    height: 22px;
+    vertical-align: top;
+  }
+}
+
+table tr td.tools {
+  width: 40px;
+  background-color: $light-gray;
+  white-space: nowrap;
+  @include disable-user-select;
+}
+
+td.label, td.input, td.submit, td.select, td.value, td.note {
+  padding: 2px 0;
+  vertical-align: top;
+
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    width: 100%;
+  }
+}
+
+td.select {
+
+  .selectboxit-container {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .selectboxit {
+    box-sizing: border-box;
+    width: 100% !important;
+    height: 100%;
+  }
+}
+
+td.submit { text-align: right }
+
+td.input {
+  .autocomplete_tag_list { width: 100% }
+}
+
+td.label {
+  white-space: nowrap;
+  width: 60px;
+  padding: 9px 4*$default-padding 0 0;
+  line-height: 21px;
+
+  &.mandatory:after {
+    content: '*';
+  }
+
+  &.long {
+    width: 140px;
+  }
+
+  &.middle {
+    padding-left: 2*$default-padding;
+  }
+
+  &.very_long {
+    width: 230px;
+  }
+}
+
+td.checkbox {
+  padding-top: 10px;
+  padding-left: 0;
+  white-space: nowrap;
+}
+
+td.value {
+  padding-top: 4px;
+
+  p {
+    @include inline-block;
+    width: 214px;
+    text-align: left;
+    margin: $default-form-field-margin;
+    line-height: 25px;
+  }
+
+  &.long {
+    p {
+      width: 244px;
+    }
+  }
+}
+
+td.heading {
+  padding: $default-padding 0;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+table tr td.tools a {
+  width: 19px;
+  height: 19px;
+  margin-right: 2px;
+}
+
+table tr td.tools.long {
+  width: 60px;
+}
+
+table tr td.icon {
+  background-color: $light-gray;
+  width: 20px;
+  text-align: center;
+}
+
+table.list tr:hover td {
+  background-color: $light_yellow;
+}
+
+td.file_type {
+  width: 130px;
+  white-space: nowrap;
+}
+
+td.file_size {
+  width: 80px;
+}
+
+td.date {
+  width: 150px;
+}
+
+table td.right, table th.right {
+  text-align: right;
+  padding-right: 0;
+}
+
+table td.center, table th.center {
+  text-align: center;
+}
+
+td.login {
+  width: 100px;
+}
+
+td.email {
+  width: 270px;
+}
+
+td.role {
+  width: 10%;
+}
+
+th.count, td.count {
+  width: 120px;
+  text-align: right;
+  padding-right: 16px;
+}
+
+table td.rights {
+  width: 60px;
+}
+
+table.window_form {
+  width: 100%;
+}
+
+th.login_status {
+  width: 16px;
+}
+
+table tr.odd td {
+  background-color: #eaf3f9;
+}
+
+table tr.even td {
+  background-color: white;
+}
+
+th.icon, td.icon {
+  background: none;
+  display: table-cell;
+  vertical-align: top;
+}
+
+td.file_name {
+  word-break: break-all;
+}

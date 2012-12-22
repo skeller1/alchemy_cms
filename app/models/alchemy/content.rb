@@ -6,8 +6,8 @@ module Alchemy
       :element_id,
       :essence_id,
       :essence_type,
-      :name,
-      :position
+      :ingredient,
+      :name
     )
 
     belongs_to :essence, polymorphic: true, dependent: :destroy
@@ -35,6 +35,8 @@ module Alchemy
 
       # Creates a new Content as descriped in the elements.yml file
       def create_from_scratch(element, essences_hash)
+        # If no name given, we can create the content from essence type.
+        # Used in picture gallery
         if essences_hash[:name].blank? && !essences_hash[:essence_type].blank?
           essences_of_same_type = element.contents.where(
             :essence_type => Content.normalize_essence_type(essences_hash[:essence_type])
@@ -43,11 +45,14 @@ module Alchemy
             'type' => essences_hash[:essence_type],
             'name' => "#{essences_hash[:essence_type].classify.demodulize.underscore}_#{essences_of_same_type.count + 1}"
           }
+        # Normal way to create
         else
           description = element.content_description_for(essences_hash[:name])
           description = element.available_content_description_for(essences_hash[:name]) if description.blank?
         end
-        raise "No description found in elements.yml for #{essences_hash.inspect} and #{element.inspect}" if description.blank?
+        if description.blank?
+          raise ContentDefinitionError, "No description found in elements.yml for #{essences_hash.inspect} and #{element.inspect}"
+        end
         content = new(:name => description['name'], :element_id => element.id)
         content.create_essence!(description)
         content
@@ -148,17 +153,24 @@ module Alchemy
         end
       end
     end
+    alias_method :definition, :description
 
     # Gets the ingredient from essence
     def ingredient
-      return nil if self.essence.nil?
-      self.essence.ingredient
+      return nil if essence.nil?
+      essence.ingredient
+    end
+
+    # Sets the ingredient from essence
+    def ingredient=(value)
+      raise EssenceMissingError if essence.nil?
+      essence.ingredient = value
     end
 
     # Calls essence.update_attributes. Called from +Alchemy::Element#save_contents+
     # Ads errors to self.base if essence validation fails.
     def update_essence(params={})
-      raise "Essence not found" if essence.nil?
+      raise EssenceMissingError if essence.nil?
       if essence.update_attributes(params)
         return true
       else
@@ -232,17 +244,74 @@ module Alchemy
     # Creates self.essence from description.
     def create_essence!(description)
       essence_class = self.class.normalize_essence_type(description['type']).constantize
+      attributes = {
+        :ingredient => default_or_lorem_ipsum(description['default'])
+      }
       if description['type'] == "EssenceRichtext" || description['type'] == "EssenceText"
-        essence = essence_class.create(:do_not_index => !description['do_not_index'].nil?)
-      else
-        essence = essence_class.create
+        attributes.merge!(:do_not_index => !description['do_not_index'].nil?)
       end
+      essence = essence_class.create(attributes)
       if essence
         self.essence = essence
         save!
       else
         false
       end
+    end
+
+    def default_or_lorem_ipsum(default)
+      return if default.nil?
+      if default.is_a? Symbol
+        I18n.t(default, :scope => :default_content_texts)
+      else
+        default
+      end
+    end
+
+    # Returns the hint for this content
+    #
+    # To add a hint to a content pass +hint: true+ to the element definition in its element.yml
+    #
+    # Then the hint itself is placed in the locale yml files.
+    #
+    # Alternativly you can pass the hint itself to the hint key.
+    #
+    # == Locale Example:
+    #
+    #   # elements.yml
+    #   - name: headline
+    #     contents:
+    #     - name: headline
+    #       type: EssenceText
+    #       hint: true
+    #
+    #   # config/locales/de.yml
+    #     de:
+    #       content_hints:
+    #         headline: Lorem ipsum
+    #
+    # == Hint Key Example:
+    #
+    #   - name: headline
+    #     contents:
+    #     - name: headline
+    #       type: EssenceText
+    #       hint: Lorem ipsum
+    #
+    # @return String
+    #
+    def hint
+      hint = definition['hint']
+      if hint == true
+        I18n.t(name, scope: :content_hints)
+      else
+        hint
+      end
+    end
+
+    # Returns true if the element has a hint
+    def has_hint?
+      hint.present?
     end
 
   end

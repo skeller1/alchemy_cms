@@ -252,10 +252,10 @@ module Alchemy
       end
     end
 
-    context ".accessible" do
+    context ".not_restricted" do
       it "should return 2 accessible pages" do
         FactoryGirl.create(:public_page, :name => 'First Public Child', :restricted => true, :parent_id => language_root.id, :language => language)
-        Page.accessible.should have(2).pages
+        Page.not_restricted.should have(2).pages
       end
     end
 
@@ -445,6 +445,12 @@ module Alchemy
           @page.elements.should_not be_empty
         end
 
+        it "should not autogenerate elements that are already on the page" do
+          @page.elements << FactoryGirl.create(:element, :name => 'header')
+          @page.save
+          @page.elements.select { |e| e.name == 'header' }.length.should == 1
+        end
+
         context "with cells" do
 
           before do
@@ -531,6 +537,23 @@ module Alchemy
 
       end
 
+      context "after changing the page layout" do
+
+        let(:news_element) { FactoryGirl.create(:element, :name => 'news') }
+
+        it "all elements not allowed on this page should be trashed" do
+          news_page.elements << news_element
+          news_page.update_attributes :page_layout => 'standard'
+          news_page.elements.trashed.should include(news_element)
+        end
+
+        it "should autogenerate elements" do
+          news_page.update_attributes :page_layout => 'standard'
+          news_page.elements.available.collect(&:name).should include('header')
+        end
+
+      end
+
     end
 
     describe '#fold' do
@@ -593,6 +616,70 @@ module Alchemy
 
       end
 
+    end
+
+    describe '#taggable?' do
+
+      context "definition has 'taggable' key with true value" do
+        it "should return true" do
+          page = FactoryGirl.build(:page)
+          page.stub(:definition).and_return({'name' => 'standard', 'taggable' => true})
+          page.taggable?.should be_true
+        end
+      end
+
+      context "definition has 'taggable' key with foo value" do
+        it "should return false" do
+          page = FactoryGirl.build(:page)
+          page.stub(:definition).and_return({'name' => 'standard', 'taggable' => 'foo'})
+          page.taggable?.should be_false
+        end
+      end
+
+      context "definition has no 'taggable' key" do
+        it "should return false" do
+          page = FactoryGirl.build(:page)
+          page.stub(:definition).and_return({'name' => 'standard'})
+          page.taggable?.should be_false
+        end
+      end
+
+    end
+
+    describe '.copy' do
+      let (:page) { FactoryGirl.create(:page, :name => 'Source') }
+      subject { Page.copy(page) }
+
+      it "the copy should have added (copy) to name" do
+        subject.name.should == "#{page.name} (Copy)"
+      end
+
+      context "page with tags" do
+        before { page.tag_list = 'red, yellow'; page.save }
+
+        it "the copy should have source tag_list" do
+          subject.tag_list.should_not be_empty
+          subject.tag_list.should == page.tag_list
+        end
+      end
+
+      context "page with elements" do
+        before { page.elements << FactoryGirl.create(:element) }
+
+        it "the copy should have source elements" do
+          subject.elements.should_not be_empty
+          subject.elements.count.should == page.elements.count
+        end
+      end
+
+      context "page with cells" do
+        before { page.cells << FactoryGirl.create(:cell) }
+
+        it "the copy should have source cells" do
+          subject.cells.should_not be_empty
+          subject.cells.count.should == page.cells.length # It must be length, because!
+        end
+      end
     end
 
   end

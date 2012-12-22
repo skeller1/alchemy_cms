@@ -2,6 +2,17 @@
 module Alchemy
   class Page < ActiveRecord::Base
 
+    RESERVED_URLNAMES = %w(admin messages new)
+    DEFAULT_ATTRIBUTES_FOR_COPY = {
+      :do_not_autogenerate => true,
+      :do_not_sweep => true,
+      :visible => false,
+      :public => false,
+      :locked => false,
+      :locked_by => nil
+    }
+    SKIPPED_ATTRIBUTES_ON_COPY = %w(id updated_at created_at creator_id updater_id lft rgt depth urlname cached_tag_list)
+
     attr_accessible(
       :do_not_autogenerate,
       :do_not_sweep,
@@ -17,20 +28,20 @@ module Alchemy
       :name,
       :page_layout,
       :parent_id,
-      :position,
       :public,
       :restricted,
       :robot_index,
       :robot_follow,
       :sitemap,
+      :tag_list,
       :title,
       :urlname,
       :visible
     )
 
-    RESERVED_URLNAMES = %w(admin messages new)
-
+    acts_as_taggable
     acts_as_nested_set(:dependent => :destroy)
+
     stampable(:stamper_class_name => 'Alchemy::User')
 
     has_many                :folded_pages
@@ -40,6 +51,7 @@ module Alchemy
     has_and_belongs_to_many :to_be_sweeped_elements, -> { uniq true }, class_name: 'Alchemy::Element', join_table: 'alchemy_elements_alchemy_pages'
     belongs_to              :language
 
+    validates_presence_of   :language,    on: :create,                        unless: :root
     validates_presence_of   :name
     validates_presence_of   :page_layout,                                     unless: :systempage?
     validates_presence_of   :parent_id,                                       if: -> { Page.count > 1 }
@@ -57,7 +69,8 @@ module Alchemy
     before_save       :set_restrictions_to_child_pages, if:     -> page { !page.systempage? && page.restricted_changed? }
     before_save       :inherit_restricted_status,       if:     -> page { !page.systempage? && page.parent && page.parent.restricted? }
     after_create      :create_cells,                    unless: :systempage?
-    after_create      :autogenerate_elements,           unless: -> page { page.systempage? || page.do_not_autogenerate }
+    after_update      :trash_not_allowed_elements,      if:     :page_layout_changed?
+    after_update      :autogenerate_elements,           if:     :page_layout_changed?
 
     scope :language_roots,        -> { where(:language_root => true) }
     scope :layoutpages,           -> { where(:layoutpage => true) }
@@ -66,7 +79,6 @@ module Alchemy
     scope :not_locked,            -> { where(:locked => false) }
     scope :visible,               -> { where(:visible => true) }
     scope :published,             -> { where(:public => true) }
-    scope :accessible,            -> { where(:restricted => false) }
     scope :restricted,            -> { where(:restricted => true) }
     scope :not_restricted,        -> { where(:restricted => false) }
     scope :public_language_roots, -> {
@@ -80,6 +92,135 @@ module Alchemy
     # Used for flushing all page caches at once.
     scope :flushables,            -> { not_locked.published.contentpages }
     scope :searchables,           -> { not_restricted.published.contentpages }
+
+    # Class methods
+    #
+    class << self
+
+      alias_method :rootpage, :root
+
+      # @return the language root page for given language id.
+      # @param language_id [Fixnum]
+      #
+      def language_root_for(language_id)
+        self.language_roots.find_by_language_id(language_id)
+      end
+
+      # Creates a copy of source
+      #
+      # Also copies all elements included in source.
+      #
+      # === Note:
+      # It prevents the element auto generator from running.
+      #
+      # @param source [Alchemy::Page]
+      # @param differences [Hash]
+      #
+      # @return [Alchemy::Page]
+      #
+      def copy(source, differences = {})
+        source.attributes.stringify_keys!
+        differences.stringify_keys!
+        attributes = source.attributes.merge(differences)
+        attributes.merge!(DEFAULT_ATTRIBUTES_FOR_COPY)
+        attributes.merge!('name' => "#{source.name} (#{I18n.t('Copy')})")
+        page = self.new(attributes.except(*SKIPPED_ATTRIBUTES_ON_COPY))
+        page.tag_list = source.tag_list
+        if page.save!
+          copy_cells(source, page)
+          copy_elements(source, page)
+          page
+        end
+      end
+
+      # Copy page cells
+      #
+      # @param source [Alchemy::Page]
+      # @param target [Alchemy::Page]
+      # @return [Array]
+      #
+      def copy_cells(source, target)
+        new_cells = []
+        source.cells.each do |cell|
+          new_cells << Cell.create(:name => cell.name, :page_id => target.id)
+        end
+        new_cells
+      end
+
+      # Copy page elements
+      #
+      # @param source [Alchemy::Page]
+      # @param target [Alchemy::Page]
+      # @return [Array]
+      #
+      def copy_elements(source, target)
+        new_elements = []
+        source.elements.each do |element|
+          # detect cell for element
+          if element.cell
+            cell = target.cells.detect { |c| c.name == element.cell.name }
+          else
+            cell = nil
+          end
+          # if cell is nil also pass nil to element.cell_id
+          new_element = Element.copy(element, :page_id => target.id, :cell_id => (cell.blank? ? nil : cell.id))
+          # move element to bottom of the list
+          new_element.move_to_bottom
+          new_elements << new_element
+        end
+        new_elements
+      end
+
+      def layout_root_for(language_id)
+        where({:parent_id => Page.root.id, :layoutpage => true, :language_id => language_id}).limit(1).first
+      end
+
+      def find_or_create_layout_root_for(language_id)
+        layoutroot = layout_root_for(language_id)
+        return layoutroot if layoutroot
+        language = Language.find(language_id)
+        layoutroot = Page.new({
+          :name => "Layoutroot for #{language.name}",
+          :layoutpage => true,
+          :language => language,
+          :do_not_autogenerate => true
+        })
+        if layoutroot.save(:validate => false)
+          layoutroot.move_to_child_of(Page.root)
+          return layoutroot
+        else
+          raise "Layout root for #{language.name} could not be created"
+        end
+      end
+
+      def all_from_clipboard(clipboard)
+        return [] if clipboard.blank?
+        self.find_all_by_id(clipboard.collect { |i| i[:id] })
+      end
+
+      def all_from_clipboard_for_select(clipboard, language_id, layoutpage = false)
+        return [] if clipboard.blank?
+        clipboard_pages = self.all_from_clipboard(clipboard)
+        allowed_page_layouts = Alchemy::PageLayout.selectable_layouts(language_id, layoutpage)
+        allowed_page_layout_names = allowed_page_layouts.collect { |p| p['name'] }
+        clipboard_pages.select { |cp| allowed_page_layout_names.include?(cp.page_layout) }
+      end
+
+      def link_target_options
+        options = [
+          [I18n.t('default', :scope => :link_target_options), '']
+        ]
+        link_target_options = Config.get(:link_target_options)
+        link_target_options.each do |option|
+          options << [I18n.t(option, :scope => :link_target_options), option]
+        end
+        options
+      end
+
+    end
+
+    # Instance methods
+    #
 
     # Finds selected elements from page.
     #
@@ -175,19 +316,6 @@ module Alchemy
       }.merge(options))
     end
     alias_method :next_page, :next
-
-    def find_first_public(page)
-      if (page.public == true)
-        return page
-      end
-      page.children.each do |child|
-        result = find_first_public(child)
-        if (result!=nil)
-          return result
-        end
-      end
-      return nil
-    end
 
     def name_entered?
       !self.name.blank?
@@ -334,12 +462,11 @@ module Alchemy
       return {} if self.systempage?
       description = PageLayout.get(self.page_layout)
       if description.nil?
-        raise "Description could not be found for page layout named #{self.page_layout}. Please check page_layouts.yml file."
+        raise PageLayoutDefinitionError, "Description could not be found for page layout named #{self.page_layout}. Please check page_layouts.yml file."
       else
         description
       end
     end
-
     alias_method :definition, :layout_description
 
     def cell_definitions
@@ -386,44 +513,6 @@ module Alchemy
       self.children.where(:public => true).limit(1).first
     end
 
-    def self.language_root_for(language_id)
-      self.language_roots.find_by_language_id(language_id)
-    end
-
-    # Creates a copy of source (a Page object) and does a copy of all elements depending to source.
-    # You can pass any kind of Page#attributes as a difference to source.
-    # Notice: It prevents the element auto_generator from running.
-    def self.copy(source, differences = {})
-      attributes = source.attributes.symbolize_keys.merge(differences)
-      attributes.merge!(
-        :do_not_autogenerate => true,
-        :do_not_sweep => true,
-        :visible => false,
-        :public => false,
-        :locked => false,
-        :locked_by => nil
-      )
-      page = self.new(attributes.except(:id, :updated_at, :created_at, :creator_id, :updater_id, :lft, :rgt, :depth))
-      if page.save
-        # copy the page´s cells
-        source.cells.each do |cell|
-          new_cell = Cell.create(:name => cell.name, :page_id => page.id)
-        end
-        # copy the page´s elements
-        source.elements.each do |element|
-          # detect cell for element
-          # if cell is nil also pass nil to element.cell_id
-          cell = nil
-          cell = page.cells.detect { |c| c.name == element.cell.name } if element.cell
-          new_element = Element.copy(element, :page_id => page.id, :cell_id => (cell.blank? ? nil : cell.id))
-          new_element.move_to_bottom
-        end
-        return page
-      else
-        raise "`#{page.name}`: #{page.errors.full_messages}"
-      end
-    end
-
     # Gets the language_root page for page
     def get_language_root
       return self if self.language_root
@@ -435,50 +524,12 @@ module Alchemy
       return page
     end
 
-    def self.layout_root_for(language_id)
-      where({:parent_id => Page.root.id, :layoutpage => true, :language_id => language_id}).limit(1).first
-    end
-
-    def self.find_or_create_layout_root_for(language_id)
-      layoutroot = layout_root_for(language_id)
-      return layoutroot if layoutroot
-      language = Language.find(language_id)
-      layoutroot = Page.new({
-        :name => "Layoutroot for #{language.name}",
-        :layoutpage => true,
-        :language => language,
-        :do_not_autogenerate => true
-      })
-      if layoutroot.save(:validate => false)
-        layoutroot.move_to_child_of(Page.root)
-        return layoutroot
-      else
-        raise "Layout root for #{language.name} could not be created"
-      end
-    end
-
-    def self.all_from_clipboard(clipboard)
-      return [] if clipboard.blank?
-      self.find_all_by_id(clipboard.collect { |i| i[:id] })
-    end
-
-    def self.all_from_clipboard_for_select(clipboard, language_id, layoutpage = false)
-      return [] if clipboard.blank?
-      clipboard_pages = self.all_from_clipboard(clipboard)
-      allowed_page_layouts = Alchemy::PageLayout.selectable_layouts(language_id, layoutpage)
-      allowed_page_layout_names = allowed_page_layouts.collect { |p| p['name'] }
-      clipboard_pages.select { |cp| allowed_page_layout_names.include?(cp.page_layout) }
-    end
-
     def copy_children_to(new_parent)
       self.children.each do |child|
         next if child == new_parent
         new_child = Page.copy(child, {
           :language_id => new_parent.language_id,
-          :language_code => new_parent.language_code,
-          :name => child.name + ' (' + I18n.t('Copy') + ')',
-          :urlname => child.redirects_to_external? ? child.urlname : '',
-          :title => ''
+          :language_code => new_parent.language_code
         })
         new_child.move_to_child_of(new_parent)
         child.copy_children_to(new_child) unless child.children.blank?
@@ -492,17 +543,6 @@ module Alchemy
 
     def has_cells?
       cells.any?
-    end
-
-    def self.link_target_options
-      options = [
-        [I18n.t('default', :scope => :link_target_options), '']
-      ]
-      link_target_options = Config.get(:link_target_options)
-      link_target_options.each do |option|
-        options << [I18n.t(option, :scope => :link_target_options), option]
-      end
-      options
     end
 
     def locker_name
@@ -519,12 +559,17 @@ module Alchemy
       rootpage? || (self.parent_id == Page.root.id && !self.language_root?)
     end
 
-    def self.rootpage
-      self.root
+    def cache_key(request = nil)
+      if timestamp = updated_at
+        timestamp = timestamp.utc.to_s(:number)
+        "alchemy/pages/#{id}-#{timestamp}"
+      else
+        "alchemy/pages/#{id}"
+      end
     end
 
-    def cache_key(request = nil)
-      "alchemy/#{language_code}/#{urlname}"
+    def taggable?
+      definition['taggable'] == true
     end
 
   private
@@ -562,21 +607,27 @@ module Alchemy
     # If the page has cells, it looks if there are elements to generate.
     #
     def autogenerate_elements
+      elements_already_on_page = self.elements.available.collect(&:name)
       elements = self.layout_description["autogenerate"]
       if elements.present?
         elements.each do |element|
-          if self.has_cells? && (cell_definition = cell_definitions.detect { |c| c['elements'].include?(element) })
-            cell = self.cells.find_by_name(cell_definition['name'])
-            if cell
-              attributes = {'page_id' => self.id, 'cell_id' => cell.id, 'name' => element}
-            else
-              raise "Cell not found for page #{self.inspect}"
-            end
-          else
-            attributes = {'page_id' => self.id, 'name' => element}
-          end
-          Element.create_from_scratch(attributes)
+          next if elements_already_on_page.include?(element)
+          Element.create_from_scratch(attributes_for_element_name(element))
         end
+      end
+    end
+
+    # Returns a hash of attributes for given element name
+    def attributes_for_element_name(element)
+      if self.has_cells? && (cell_definition = cell_definitions.detect { |c| c['elements'].include?(element) })
+        cell = self.cells.find_by_name(cell_definition['name'])
+        if cell
+          return {:page_id => self.id, :cell_id => cell.id, :name => element}
+        else
+          raise "Cell not found for page #{self.inspect}"
+        end
+      else
+        return {:page_id => self.id, :name => element}
       end
     end
 
@@ -590,6 +641,11 @@ module Alchemy
       definition['cells'].each do |cellname|
         cells.create({:name => cellname})
       end
+    end
+
+    # Trashes all elements that are not allowed for this page_layout.
+    def trash_not_allowed_elements
+      elements.select { |e| !definition['elements'].include?(e.name) }.map(&:trash)
     end
 
   end

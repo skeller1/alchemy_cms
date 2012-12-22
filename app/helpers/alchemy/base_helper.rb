@@ -45,6 +45,24 @@ module Alchemy
       content_tag('span', '', :class => "icon #{icon_class}")
     end
 
+    # Returns a div with an icon and the passed content
+    # The default message type is info, but you can also pass
+    # other types like :warning or :error
+    #
+    # === Usage:
+    #
+    #   <%= render_message :warning do
+    #     <p>Caution! This is a warning!</p>
+    #   <% end %>
+    #
+    def render_message(type = :info, msg = nil, &blk)
+      if block_given?
+        content_tag :div, render_icon(type) + capture(&blk), :class => "#{type} message"
+      else
+        content_tag :div, render_icon(type) + msg, :class => "#{type} message"
+      end
+    end
+
     # Returns an array of all pages in the same branch from current.
     # I.e. used to find the active page in navigation.
     def breadcrumb(current)

@@ -1,6 +1,7 @@
 module Alchemy
   module Admin
     class PagesController < Alchemy::Admin::BaseController
+      include Alchemy::FerretSearch
 
       helper "alchemy/pages"
 
@@ -34,11 +35,14 @@ module Alchemy
         # Setting the locale to pages language. so the page content has its correct translation
         ::I18n.locale = @page.language_code
         render :layout => layout_for_page
+      rescue Exception => e
+        exception_logger(e)
+        render :file => Rails.root.join('public', '500.html'), :status => 500, :layout => false
       end
 
       def new
         @page = Page.new(:layoutpage => params[:layoutpage] == 'true', :parent_id => params[:parent_id])
-        @page_layouts = PageLayout.get_layouts_for_select(session[:language_id], @page.layoutpage?)
+        @page_layouts = PageLayout.layouts_for_select(session[:language_id], @page.layoutpage?)
         @clipboard_items = Page.all_from_clipboard_for_select(get_clipboard[:pages], session[:language_id], @page.layoutpage?)
         render :layout => false
       end
@@ -49,18 +53,17 @@ module Alchemy
         params[:page][:language_code] ||= parent.language ? parent.language.code : Language.get_default.code
         if !params[:paste_from_clipboard].blank?
           source_page = Page.find(params[:paste_from_clipboard])
-          page = Page.copy(source_page, {
-            :name => params[:page][:name].blank? ? source_page.name + ' (' + t('Copy') + ')' : params[:page][:name],
-            :urlname => '',
-            :title => '',
+          @page = Page.copy(source_page, {
             :parent_id => params[:page][:parent_id],
             :language => parent.language
           })
-          source_page.copy_children_to(page) unless source_page.children.blank?
+          if source_page.children.any?
+            source_page.copy_children_to(@page)
+          end
         else
-          page = Page.create(params[:page])
+          @page = Page.create(params[:page])
         end
-        render_errors_or_redirect(page, parent.layoutpage? ? admin_layoutpages_path : admin_pages_path, t("Page created", :name => page.name), '#alchemyOverlay button.button')
+        render_errors_or_redirect(@page, @page.valid? ? edit_admin_page_path(@page) : admin_pages_path, t("Page created", :name => @page.name))
       end
 
       # Edit the content of the page and all its elements and contents.
@@ -82,12 +85,15 @@ module Alchemy
         if @page.redirects_to_external?
           render :action => 'configure_external', :layout => false
         else
+          @page_layouts = PageLayout.layouts_with_own_for_select(@page.page_layout, session[:language_id], @page.layoutpage?)
           render :layout => false
         end
       end
 
       def update
         # fetching page via before filter
+        # storing old page_layout value, because unfurtunally rails @page.changes does not work here.
+        @old_page_layout = @page.page_layout
         if @page.update_attributes(params[:page])
           @notice = t("Page saved", :name => @page.name)
           @while_page_edit = request.referer.include?('edit')
@@ -213,7 +219,7 @@ module Alchemy
       end
 
       def switch_language
-        set_language_from(params[:language_id])
+        set_language(params[:language_id])
         redirect_path = request.referer.include?('admin/layoutpages') ? admin_layoutpages_path : admin_pages_path
         if request.xhr?
           @redirect_url = redirect_path

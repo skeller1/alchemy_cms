@@ -9,20 +9,22 @@ module Alchemy
       :public,
       :default,
       :country_code,
-      :code
+      :code,
+      :site
     )
 
     validates_presence_of   :name
     validates_presence_of   :page_layout
     validates_presence_of   :frontpage_name
     validates_presence_of   :language_code
-    validates_uniqueness_of :language_code,                scope: :country_code
+    validates_uniqueness_of :language_code,                scope: [:site_id, :country_code]
     validates_format_of     :language_code,                with: /\A[a-z]{2}\z/,  if: -> { language_code.present? }
     validate                :presence_of_default_language
     validate                :publicity_of_default_language
     validates_format_of     :country_code,                 with: /\A[a-z]{2}\z/,  if: -> { country_code.present? }
 
     has_many                :pages
+    belongs_to              :site
 
     after_destroy  :delete_language_root_page
     before_destroy :check_for_default
@@ -32,18 +34,29 @@ module Alchemy
 
     scope :published, -> { where(:public => true) }
 
-    def self.all_for_created_language_trees
-      find(Page.language_roots.collect(&:language_id))
-    end
+    # multi-site support
+    scope :on_site, lambda { |s| s.present? ? where(site_id: s) : scoped }
+    default_scope { on_site(Site.current) }
 
-    def self.all_codes_for_published
-      self.published.collect(&:code)
-    rescue
-      []
-    end
+    class << self
 
-    def self.get_default
-      self.find_by_default(true)
+      # Returns all languages for which a language root page exists.
+      def all_for_created_language_trees
+        # don't use 'find' here as it would clash with our default_scopes
+        # in various unholy ways you don't want to find out about.
+        where(id: Page.language_roots.collect(&:language_id))
+      end
+
+      def all_codes_for_published
+        published.collect(&:code)
+      rescue
+        []
+      end
+
+      def get_default
+        where(default: true).first
+      end
+
     end
 
     def label(attrib)
@@ -77,7 +90,7 @@ module Alchemy
     end
 
     def remove_old_default
-      lang = Language.get_default
+      lang = Language.on_site(site).get_default
       return true if lang.nil?
       lang.default = false
       lang.save(:validate => false)

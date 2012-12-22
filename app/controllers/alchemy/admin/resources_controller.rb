@@ -6,8 +6,6 @@ module Alchemy
       helper Alchemy::ResourcesHelper
       helper_method :resource_handler
 
-      rescue_from Exception, :with => :exception_handler
-
       before_filter :load_resource, :only => [:show, :edit, :update, :destroy]
 
       def index
@@ -16,7 +14,7 @@ module Alchemy
         else
           search_terms = ActiveRecord::Base.sanitize("%#{params[:query]}%")
           items = resource_handler.model.where(resource_handler.searchable_attributes.map { |attribute|
-            "#{resource_handler.namespaced_model_name.pluralize}.#{attribute[:name]} LIKE #{search_terms}"
+            "`#{resource_handler.model.table_name}`.`#{attribute[:name]}` LIKE #{search_terms}"
           }.join(" OR "))
         end
         instance_variable_set("@#{resource_handler.resources_name}", items.page(params[:page] || 1).per(per_page_value_for_screen_size))
@@ -63,28 +61,12 @@ module Alchemy
         @_resource_handler ||= Alchemy::Resource.new(controller_path, alchemy_module)
       end
 
-      protected
-
-
-      def render_errors_or_redirect(object, redirect_url, flash_notice, button = nil)
-        if object.errors.empty?
-          @redirect_url = redirect_url
-          flash[:notice] = t(flash_notice)
-          respond_to do |format|
-            format.js { render :action => :redirect }
-            format.html { redirect_to @redirect_url }
-          end
-        else
-          respond_to do |format|
-            format.js { render_remote_errors(object, button) }
-            format.html { render :action => :new }
-          end
-        end
-      end
+    protected
 
       # Returns a translated +flash[:notice]+.
       # The key should look like "Modelname successfully created|updated|destroyed."
       def flash_notice_for_resource_action(action = params[:action])
+        return if resource_instance_variable.errors.any?
         case action.to_sym
         when :create
           verb = "created"

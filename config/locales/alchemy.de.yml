@@ -84,6 +84,10 @@ de:
         blank: '%{field} darf nicht leer sein.'
         wrong_format: '%{field} hat das falsche Format.'
 
+    default_content_texts:
+      lorem: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+      corporate_lorem: "Appropriately enable sustainable growth strategies vis-a-vis holistic materials. Energistically orchestrate open-source e-tailers vis-a-vis plug-and-play best practices. Uniquely plagiarize client-centric opportunities whereas plug-and-play ideas. Distinctively reconceptualize backward-compatible partnerships vis-a-vis reliable total linkage. Interactively fabricate highly efficient networks for clicks-and-mortar content. Collaboratively reconceptualize holistic markets via 2.0 architectures."
+
     essence_pictures:
       css_classes:
         left: 'Links vom Text'
@@ -176,6 +180,10 @@ de:
       blank: neuem Fenster/Tab
       overlay: einem Overlay
 
+    resource_help_texts:
+      site:
+        aliases: Weitere Domains bitte mit Leerzeichen oder Leerzeile getrennt angeben.
+
     create_tree_as_new_language: "%{language} als neuen Sprachbaum anlegen"
     "<a href=\"http://get.adobe.com/flashplayer\" target=\"_blank\">%{value}</a>": ""
     "Active Pages": "Aktive Seiten"
@@ -206,7 +214,7 @@ de:
     "File renamed successfully from: '%{from}' to '%{to}'": "Datei wurde erfolgreich von: '%{from}' nach '%{to}' umbenannt."
     "File upload error: %{error}": "Datei konnte nicht hochgeladen werden: %{error}"
     "File: '%{name}' deleted successfully": "%{name} wurde gelöscht"
-    "Filter by tag": "Nach Schlagwörtern filtern"
+    "Filter by tag": "Nach Tags filtern"
     "Flush page cache": "Seitencache löschen"
     "Flush picture cache": "Bildercache löschen"
     "Have much fun with Alchemy!": "Viel Spaß mit Alchemy!"
@@ -227,10 +235,13 @@ de:
     "New": "Neu"
     "New Element": "Element hinzufügen"
     "New page": "Neue Seite"
+    "New Tag": "Neues Tag"
+    "New Tag Created": "Neues Tag wurde erstellt"
     "No": "Nein"
     "No EssenceType given": ""
     "No image found. Did you saved the element?": "Es wurde kein Bild gefunden. Haben Sie das Element auch gespeichert?"
     "No items in your clipboard": "Ihre Zwischenablage ist leer"
+    "No Tags found": "Keine Tags gefunden"
     "None": "keine"
     "Open Link in": "Link öffnen in"
     "Page deleted": "%{name} wurde gelöscht"
@@ -246,6 +257,7 @@ de:
     "Pages order saved": "Seitensortierung wurde gespeichert"
     "Password": "Passwort"
     "Paste from clipboard": "Aus Zwischenablage"
+    "Picture infos": "Bild Informationen"
     "Picture uploaded succesfully": "Bild %{name} wurde hochgeladen"
     "Picture renamed successfully": "Bild wurde erfolgreich von %{from} nach %{to} umbenannt"
     "Picture deleted successfully": "%{name} wurde gelöscht"
@@ -255,7 +267,7 @@ de:
     "Please Signup": "Um Ihre Homepage bearbeiten zu können, müssen Sie als erstes einen Admin Benutzer einrichten."
     "Please choose": "Bitte wählen"
     "Please log in": "Bitte melden Sie sich an."
-    "Please seperate the tags with commata": "*) Die Schlagwörter bitte mit Kommata getrennt eingeben."
+    "Please seperate the tags with commata": "* Die Tags bitte mit Kommata getrennt eingeben."
     use_alternative_uploader_instead: "Benutzen Sie bitte diesen alternativen Uploader."
     "Publish page": "veröffentlichen"
     "Read the License": "Lizenz lesen"
@@ -272,17 +284,19 @@ de:
     "Show Preview Window": "Seitenvorschau anzeigen"
     "Show childpages": "Unterseiten anzeigen"
     "Show clipboard": "Zwischenablage anzeigen"
+    "Show picture infos": "Bild Informationen anzeigen"
     "Show trash": "Papierkorb anzeigen"
     "Size": "Größe"
     "Sort pages": "Seiten sortieren"
     "Successfully added content": "%{content} wurde hinzugefügt"
     "Successfully deleted content": "%{content} wurde gelöscht"
     "Successfully saved content position": "Die Position wurde gespeichert."
+    "Successfully signup admin user": "Admin Benutzer wurde erfolgreich eingerichtet."
     "Switch to Flash® Uploader": "Auf den Flash® Uploader wechseln"
     sitemap_editor_info: "Die Sitemap wird automatisch generiert"
     searchresults_editor_info: "Dieses Element stellt die Suchergebnisse dar. Es Bedarf keinerlei Anpassung."
     element_dirty_notice: "Dieses Element hat nicht gespeicherte Änderungen. Möchten Sie es wirklich einklappen?"
-    "Tags": "Schlagwörter"
+    "Tags": "Tags"
     "This page is locked by %{name}": "Diese Seite wird gerade von %{name} blockiert"
     "Title": "Titel"
     "To manage your website open a browser and go to": "Um die Inhalte Ihrer Webseite zu bearbeiten klicken Sie bitte auf folgenden Link"
@@ -325,11 +339,12 @@ de:
     assign_file: "Datei zuweisen"
     assign_file_from_archive: "Datei aus dem Archiv zuweisen"
     assign_image: "Bild hinzufügen."
-    attachment_filename_notice: "*) Bitte verwenden Sie keine Sonderzeichen oder Umlaute in dem Dateinamen."
+    attachment_filename_notice: "* Bitte verwenden Sie keine Sonderzeichen oder Umlaute in dem Dateinamen."
     auto_play: "Film automatisch abspielen"
     big_thumbnails: "große Miniaturbilder"
     browse: "durchsuchen"
     cancel: "abbrechen"
+    cannot_delete_picture_notice: "Das Bild %{name} kann nicht gelöscht werden, da es noch auf Seiten benutzt wird."
     choose_element_as_target: "Wählen Sie ein Element dieser Seite als Ziel"
     choose_element_to_link: "Bitte wählen Sie ein Element."
     choose_file_to_link: "Bitte wählen Sie eine Datei zum Verlinken aus."
@@ -356,6 +371,7 @@ de:
     country_code_foot_note: "Der Ländercode ist nur notwendig, wenn Sie mehrere Länder mit unterschiedlichen Sprachen versehen wollen."
     create: "erstellen"
     "Create language": "Eine neue Sprache erstellen"
+    "Create site": "Eine neue Website erstellen"
     create_language_tree_heading: "Einen leeren Sprachbaum erstellen"
     create_page: "Eine Unterseite anlegen"
     create_user: "Einen Benutzer anlegen"
@@ -366,16 +382,19 @@ de:
     delete_image: "Bild löschen."
     delete_language: "Sprache löschen"
     delete_page: "Seite löschen"
+    delete_tag: 'Tag löschen'
     delete_user: "Benutzer löschen"
     document: "Dokument"
     documents: "Dateien"
     download_file: "%{filename} runterladen"
+    do_you_really_want_to_delete_this_tag?: "Wollen Sie dieses Tag wirklich löschen?"
     drag_to_sort: "Mit der Maus halten und verschieben"
     edit_file_properties: "Dateieigenschaften bearbeiten"
     edit_image_properties: "Bildeigenschaften bearbeiten"
     edit_language: "Sprache bearbeiten"
     edit_page: "Seite bearbeiten"
     edit_page_properties: "Seiteneigenschaften bearbeiten"
+    edit_tag: 'Tag bearbeiten'
     edit_user: "Benutzer bearbeiten"
     edit_selected_pictures: "Selektierte Bilder:"
     element_dirty_page_leave_warning: "Sie haben ungesicherte Elemente auf der Seite. Möchten Sie wirklich fortfahren?"
@@ -394,6 +413,8 @@ de:
       step2: "Wählen Sie alle %{name} aus, die Sie gleichzeitig hochladen wollen"
       step3: "Klicken Sie auf 'öffnen'. Das Hochladen beginnt!"
       dragndrop: "Alternativ können Sie Dateien auch von Ihrem Computer mit der Maus auf die untere Fläche ziehen."
+    external_link_notice_1: "Bitte geben Sie die URL komplett mit http:// (oder vergleichbarem Protokoll) ein."
+    external_link_notice_2: "Um auf einen Pfad innerhalb der Webseiten URL zu verweisen, beginnen Sie mit einem /."
     female: "Frau"
     file: "Datei"
     file_rename_error: "Datei konnte nicht umbenannt werden."
@@ -433,8 +454,7 @@ de:
     medium_thumbnails: "mittlere Miniaturbilder"
     meta_data: "Meta Daten"
     meta_description: "Meta Beschreibung"
-    meta_keywords: "Meta Schlagwörter"
-    missing_image: "Bild wird vermisst."
+    meta_keywords: "Meta Tags"
     modules:
       user_sessions: "Anmeldung"
       attachments: "Dateien"
@@ -445,6 +465,8 @@ de:
       library: "Bibliothek"
       pages: "Seiten"
       users: "Benutzer"
+      tags: "Tags"
+      sites: "Websites"
     name: "Name"
     names: "Namen"
     navigation_name: "Navigationsname"
@@ -459,9 +481,11 @@ de:
     no_search_results: "Keine Suchergebnisse."
     "not a valid image": "Keine valide Bilddatei."
     "or": 'oder'
+    or_replace_it_with_an_existing_tag: 'Oder Sie ersetzen es durch ein vorhandenes Tag'
     "Page created": "Seite '%{name}' wurde erstellt."
     page_for_links:
       choose_page: "%{name} wählen"
+    page_layout_changed_notice: "Der Seitentyp wurde verändert. Nicht mehr verwendbare Elemente wurden in den Papierkorb verschoben."
     page_locked: "Die Seite ist gesperrt"
     page_properties: "Seiteneigenschaften"
     page_public: "öffentlich"
@@ -498,10 +522,21 @@ de:
     "please enter subject and mail address": "Bitte geben Sie den Betreff und eine Empfängeradresse an."
     please_confirm: "Bitte bestätigen"
     please_wait: "Bitte warten"
+    preview_size: "Vorschaugröße"
+    preview_sizes:
+      '240': '240px (kleines Mobiltelefon)'
+      '320': '320px (iPhone)'
+      '480': '480px (kleines Tablet)'
+      '768': '768px (iPad - Portrait)'
+      '1024': '1024px (iPad - Breitbild)'
+      '1280': '1280px (Desktop)'
     recently_uploaded_only: 'Kürzlich hochgeladene'
     "regular method": "herkömmlichen Methode"
     remove: "entfernen"
     rename_file: "Datei umbenennen"
+    rename: umbenennen
+    replace: ersetzen
+    'Replaced Tag %{old_tag} with %{new_tag}': "Das Tag '%{old_tag}' wurde durch das Tag '%{new_tag}' ersetzt"
     right: "rechts"
     robot_follow: "den Robot Links folgen lassen"
     robot_index: "durch Robot indizieren"
@@ -512,19 +547,27 @@ de:
     'search query': 'Suchbegriff'
     search_engines: "Suchmaschinen"
     select_element: "Element wählen"
+    seperate_tags_with_comma: 'Mehrere Tags mit Komma trennen.'
     show_element_content: "Element ausklappen"
     show_elements_from_page: "Elemente dieser Seite anzeigen"
     show_eq: "EQ anzeigen"
     show_navigation: "Navigation anzeigen"
     show_page_in_sitemap: "Seite in der Sitemap zeigen"
+    signup_mail_delivery_error: "Einrichtungs-E-Mail konnte nicht verschickt werden. Bitte überprüfen Sie die Mail Einstellungen."
     small_thumbnails: "kleine Miniaturbilder"
     subject: "Betreff"
     successfully_added_element: "Element wurde hinzugefügt."
+    successfully_deleted_tag: "Das Tag wurde gelöscht"
     successfully_saved_element_position: "Die Elementposition wurde gespeichert."
+    successfully_updated_tag: "Das Tag wurde gespeichert"
     swap_image: "Bild tauschen"
     insert_image: "Bild einfügen"
     swfupload:
       cancel_uploads: "Hochladen abbrechen"
+    tag_list: Tags
+    tags_get_created_if_used_the_first_time: 'Ein Tag wird automatisch erstellt, sobald Sie es das erste mal verwenden.'
+    this_picture_is_not_used_on_any_page: "Dieses Bild wird auf keiner Seite benutzt."
+    this_picture_is_used_on_these_pages: "Dieses Bild wird auf folgenden Seiten benutzt"
     title: "Titel"
     "trash element": "Element in den Papierkorb legen"
     unknown: "unbekannt"
@@ -543,6 +586,7 @@ de:
     "We need at least one default.": "Es muss eine Standardsprache geben."
     welcome_please_identify_notice: "Willkommen! Bitte identifizieren Sie sich."
     width: "Breite"
+    you_can_rename_this_tag: "Sie können dieses Tag umbenennen"
     zoom_image: "Bild in voller Größe anzeigen."
     "Leave Alchemy": "Alchemy verlassen"
     leave: "verlassen"
@@ -729,6 +773,16 @@ de:
             too_short: "^Der URL-Name der Seite ist zu kurz (min. 3 Zeichen)"
             taken: "^Der URL-Name ist bereits vergeben."
             exclusion: "^Der URL-Name der Seite kann nicht benutzt werden."
+      alchemy/picture:
+        attributes:
+          image_file:
+            blank: "^Bitte fügen Sie ein Bild an."
+      alchemy/user:
+        attributes:
+          login:
+            invalid: "darf nur aus Buchstaben, Zahlen, Leerzeichen und .-_@ bestehen."
+          email:
+            invalid: "entspricht nicht dem Format einer E-Mail-Adresse."
 
   activemodel:
 
@@ -781,7 +835,19 @@ de:
         one: Benutzer
         other: Benutzer
 
+      alchemy/user_session:
+        one: Anmeldung
+        other: Anmeldungen
+
+      alchemy/site:
+        one: Website
+        other: Websites
+
     attributes:
+
+      acts_as_taggable_on/tag:
+        taggings_types: Verwendet an
+        taggings_count: Anzahl Verwendung
 
       alchemy/attachment:
         content_type: "Dateityp"
@@ -789,11 +855,13 @@ de:
         filename: "Dateiname"
         name: "Name"
         size: "Dateigröße"
+        tag_list: Tags
 
       alchemy/element:
         display_name: "Name"
         name: "Name"
         public: "sichtbar"
+        tag_list: Tags
 
       alchemy/essence_file:
         css_class: Textanordnung
@@ -835,20 +903,23 @@ de:
         robot_follow: "den Robot Links folgen lassen"
         robot_index: "durch Robot indizieren"
         sitemap: "in der Seitenübersicht sichtbar"
+        tag_list: Tags
         title: "Seitentitel"
         updated_at: "Aktualisiert am"
         urlname: "URL-Name"
         visible: "in der Navigation sichtbar"
 
       alchemy/picture:
-        image_filename: "Dateiname"
-        image_height: "Bildhöhe"
-        image_width: "Bildbreite"
+        image_file_name: "Dateiname"
+        image_file_height: "Höhe"
+        image_file_width: "Breite"
+        image_file_dimensions: "Abmessungen"
+        image_file_size: "Dateigröße"
         name: "Name"
-        tag_list: Schlagwörter
+        tag_list: Tags
 
       alchemy/user:
-        email: "Email"
+        email: "E-Mail"
         firstname: "Vorname"
         gender: "Anrede"
         language: "Sprache"
@@ -859,6 +930,14 @@ de:
         password: "Passwort"
         password_confirmation: "Passwort Bestätigung"
         role: "Benutzerrolle"
+        tag_list: Tags
+
+      alchemy/site:
+        name: "Bezeichnung"
+        host: "primäre Domain"
+        public: "veröffentlicht"
+        aliases: "Domain-Aliases"
+        redirect_to_primary_host: "Auf primäre Domain weiterleiten"
 
     errors:
       <<: *errors
@@ -871,15 +950,12 @@ de:
       login_not_found: "^Dieser Benutzername existiert nicht."
       general_credentials_error: "Die Kombination aus Benutzername und Passwort ist nicht gültig."
       consecutive_failed_logins_limit_exceeded: "Zu viele Fehlversuche! Dieser Account ist aus Sicherheitsgründen gesperrt worden. Bitte wenden Sie sich an den Administrator."
-      email_invalid: "Die Email-Adresse entspricht nicht dem Format einer Email-Adresse."
       password_blank: "^Bitte ein Passwort angegeben."
       password_invalid: "^Das Passwort ist nicht richtig."
       not_active: "Dieser Account wurde noch nicht aktiviert."
       not_confirmed: "Dieser Account wurde noch nicht bestätigt."
       not_approved: "Dieser Account wurde noch nicht freigeschaltet."
       no_authentication_details: 'Sie haben keinen Benutzernamen und/oder Passwort eingegeben.'
-      login_not_valid: "^Der Benutzername darf nur aus Buchstaben, Zahlen, Leerzeichen und .-_@ bestehen."
-      login_too_short: "^Der Benutzername ist zu kurz. Bitte mindestens 3 Zeichen verwenden."
 
     models:
       alchemy/user_session: 'Sitzung'

@@ -15,9 +15,10 @@ group :test do
   gem 'sqlite3'               if ENV['DB'].nil? || ENV['DB'] == 'sqlite'
   gem 'mysql2'                if ENV['DB'] == 'mysql'
   gem 'pg'                    if ENV['DB'] == 'postgresql'
-  gem 'poltergeist'
+  gem 'poltergeist', '1.0.2'
   unless ENV['CI']
     gem 'launchy'
+    gem 'simplecov', :require => false
   end
 end
 
@@ -29,9 +30,9 @@ end
 
 group :development do
   unless ENV['CI']
-    #gem 'localeapp'
     gem 'guard-spork'
-    gem 'debugger', :platform => :ruby_19
-    gem 'ruby-debug', :platform => :ruby_18
+    gem 'debugger'
+    gem 'quiet_assets' # Mute assets loggin
+    gem 'thin' # Get rid off 'Could not determine content-length of response body' Warning. Start with 'rails s thin'
   end
 end

@@ -1,3 +1,6 @@
+/*
+ *= require_self
+ */
 @import "alchemy/defaults";
 
 /* Generic */
@@ -274,6 +277,10 @@ td.charmap, #charmap a {
   height: 300px;
   overflow: visible;
 }
+
+div#general_panel { height: 245px }
+
+div#advanced_panel { height: 300px }
 
 .panel_wrapper {
   border: 1px solid #919B9C;

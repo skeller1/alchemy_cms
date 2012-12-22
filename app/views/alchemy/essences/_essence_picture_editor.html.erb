@@ -1,6 +1,11 @@
 <div id="<%= content_dom_id(content) %>" class="essence_picture_editor<%= ' dragable_picture' if options[:dragable] %><%= ' content_editor' unless options[:grouped] %>">
   <% unless options[:grouped] %>
-  <label><%= render_content_name(content) %></label>
+  <label>
+    <% if content.has_hint? %>
+      <%= render_hint_for(content) %>
+    <% end %>
+    <%= render_content_name(content) %>
+  </label>
   <% end %>
   <div class="picture_thumbnail">
     <span class="picture_tool delete">
@@ -33,15 +38,18 @@
     <div class="picture_image">
       <div class="thumbnail_background<%= ' missing' if content.ingredient.nil? %>">
         <%- if content.ingredient -%>
+        <% image_options = {
+          :size => content.ingredient.cropped_thumbnail_size(content.essence.render_size.blank? ? options[:image_size] : content.essence.render_size),
+          :crop_from => content.essence.crop_from.blank? ? nil : content.essence.crop_from,
+          :crop_size => content.essence.crop_size.blank? ? nil : content.essence.crop_size,
+          :crop => content.essence.crop_size.blank? && content.essence.crop_from.blank? ? 'crop' : nil
+        } %>
         <%= image_tag(
-          alchemy.thumbnail_path(
+          alchemy.thumbnail_path({
             :id => content.ingredient.id,
-            :size => content.ingredient.cropped_thumbnail_size(content.essence.render_size.blank? ? options[:image_size] : content.essence.render_size),
-            :crop_from => content.essence.crop_from.blank? ? nil : content.essence.crop_from,
-            :crop_size => content.essence.crop_size.blank? ? nil : content.essence.crop_size,
-            :crop => content.essence.crop_size.blank? && content.essence.crop_from.blank? ? 'crop' : nil,
-            :name => content.ingredient.urlname
-          ),
+            :name => content.ingredient.urlname,
+            :sh => content.ingredient.security_token(image_options)
+          }.merge(image_options)),
           :alt => content.ingredient.name,
           :class => 'img_paddingtop',
           :title => t("image_name") + ": #{content.ingredient.name}",

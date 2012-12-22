@@ -3,14 +3,14 @@ module Alchemy
     class BaseController < Alchemy::BaseController
 
       include Userstamp
-
+      before_filter { enforce_ssl if ssl_required? && !request.ssl? }
       before_filter :set_translation
 
       helper_method :clipboard_empty?, :trash_empty?, :get_clipboard, :is_admin?
 
       filter_access_to :all
 
-      rescue_from Exception, :with => :exception_handler
+      rescue_from Exception, :with => :exception_handler unless Rails.env == 'test'
 
       layout 'alchemy/admin'
 
@@ -24,16 +24,13 @@ module Alchemy
 
       # Logs the current exception to the error log.
       def exception_logger(e)
-        message = "\n+++++++++ Error: #{e} +++++++++++++\n\n"
-        e.backtrace.each do |line|
-          message += "#{line}\n"
-        end
-        logger.error(message)
+        Rails.logger.error("\n#{e.class} #{e.message} in #{e.backtrace.first}")
+        Rails.logger.error(e.backtrace[1..50].each { |l| l.gsub(/#{Rails.root.to_s}/, '') }.join("\n"))
       end
 
       # Displays an error notice in the Alchemy backend.
       def show_error_notice(e)
-        @notice = "Error: #{e}"
+        @notice = "Error: #{e.message[0..99]}"
         @trace = e.backtrace
         if request.xhr?
           render :action => "error_notice", :layout => false
@@ -86,18 +83,43 @@ module Alchemy
         current_user.admin?
       end
 
-      def render_errors_or_redirect(object, redirect_url, flash_notice, button = nil)
+      # Displays errors in a #errors div if any errors are present on the object.
+      # Or redirects to the given redirect url.
+      #
+      # @param object [ActiveRecord::Base]
+      # @param redirect_url [String]
+      # @param flash_notice [String]
+      #
+      def render_errors_or_redirect(object, redirect_url, flash_notice)
         if object.errors.empty?
           @redirect_url = redirect_url
           flash[:notice] = t(flash_notice)
-          render :action => :redirect
+          respond_to do |format|
+            format.js   { render :action => :redirect }
+            format.html { redirect_to @redirect_url }
+          end
         else
-          render_remote_errors(object, button)
+          respond_to do |format|
+            format.js   { render_remote_errors(object) }
+            format.html { render :action => (params[:action] == "update" ? :edit : :new) }
+          end
         end
       end
 
-      def render_remote_errors(object, button = nil)
-        @button = button
+      # Renders an unordered list of objects errors in an errors div via javascript.
+      #
+      # Note: You have to have a hidden div with the id +#errors+ in your form, to make this work.
+      #
+      # You can pass a div id as second argument to display the errors in alternative div.
+      #
+      # Hint: If you use an alternative div, please use the +errors+ css class to get the correct styling.
+      #
+      # @param object [ActiveRecord::Base]
+      # @param error_div_id [String]
+      #
+      def render_remote_errors(object, error_div_id = nil)
+        @error_div_id = error_div_id || '#errors'
+        @error_fields = object.errors.messages.keys.map { |f| "#{object.class.model_name.demodulize.underscore}_#{f}" }
         @errors = ("<ul>" + object.errors.full_messages.map { |e| "<li>#{e}</li>" }.join + "</ul>").html_safe
         render :action => :remote_errors
       end

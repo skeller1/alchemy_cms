@@ -6,26 +6,26 @@ module Alchemy
     describe '#new_from_scratch' do
 
       it "should initialize an element by name from scratch" do
-        el = Element.new_from_scratch({'name' => 'article'})
+        el = Element.new_from_scratch({:name => 'article'})
         el.should be_valid
       end
 
       it "should raise an error if the given name is not defined in the elements.yml" do
-        expect { Element.new_from_scratch({'name' => 'foobar'}) }.to raise_error
+        expect { Element.new_from_scratch({:name => 'foobar'}) }.to raise_error
       end
 
       it "should take the first part of an given name containing a hash (#)" do
-        el = Element.new_from_scratch({'name' => 'article#header'})
+        el = Element.new_from_scratch({:name => 'article#header'})
         el.name.should == "article"
       end
 
       it "should merge given attributes into defined ones" do
-        el = Element.new_from_scratch({'name' => 'article', 'page_id' => 1})
+        el = Element.new_from_scratch({:name => 'article', :page_id => 1})
         el.page_id.should == 1
       end
 
       it "should not have forbidden attributes from definition" do
-        el = Element.new_from_scratch({'name' => 'article'})
+        el = Element.new_from_scratch({:name => 'article'})
         el.contents.should == []
       end
 
@@ -102,16 +102,16 @@ module Alchemy
 
     context "no description files are found" do
 
-      before(:each) do
-        FileUtils.mv(File.join(File.dirname(__FILE__), '..', '..', 'config', 'alchemy', 'elements.yml'), File.join(File.dirname(__FILE__), '..', '..', 'config', 'alchemy', 'elements.yml.bak'))
+      before do
+        FileUtils.mv(File.join(File.dirname(__FILE__), '../dummy/config/alchemy/elements.yml'), File.join(File.dirname(__FILE__), '../dummy/config/alchemy/elements.yml.bak'))
       end
 
       it "should raise an error" do
         expect { Element.descriptions }.to raise_error(LoadError)
       end
 
-      after(:each) do
-        FileUtils.mv(File.join(File.dirname(__FILE__), '..', '..', 'config', 'alchemy', 'elements.yml.bak'), File.join(File.dirname(__FILE__), '..', '..', 'config', 'alchemy', 'elements.yml'))
+      after do
+        FileUtils.mv(File.join(File.dirname(__FILE__), '../dummy/config/alchemy/elements.yml.bak'), File.join(File.dirname(__FILE__), '../dummy/config/alchemy/elements.yml'))
       end
 
     end
@@ -199,32 +199,19 @@ module Alchemy
     end
 
     describe "#trash" do
+      let(:element)         { FactoryGirl.create(:element, :page_id => 1, :cell_id => 1) }
+      let(:trashed_element) { element.trash ; element }
+      subject               { trashed_element }
 
-      before(:each) do
-        @element = FactoryGirl.create(:element, :page_id => 1, :cell_id => 1)
-        @element.trash
-      end
-
-      it "should remove the elements position" do
-        @element.position.should == nil
-      end
-
-      it "should set the public state to false" do
-        @element.public?.should == false
-      end
-
-      it "should not remove the page_id" do
-        @element.page_id.should == 1
-      end
-
-      it "should not remove the cell_id" do
-        @element.cell_id.should == 1
-      end
+      it             { should_not be_public }
+      its(:position) { should be_nil }
+      specify        { expect { element.trash }.to_not change(element, :page_id) }
+      specify        { expect { element.trash }.to_not change(element, :cell_id) }
 
       it "it should be possible to trash more than one element from the same page" do
         trashed_element_2 = FactoryGirl.create(:element, :page_id => 1)
         trashed_element_2.trash
-        Element.trashed.should include(@element, trashed_element_2)
+        Element.trashed.should include(trashed_element, trashed_element_2)
       end
 
     end
@@ -259,33 +246,26 @@ module Alchemy
     end
 
     describe "#all_contents_by_type" do
-
-      before(:each) do
-        @element = FactoryGirl.create(:element)
-        @contents = @element.contents.select { |c| c.essence_type == 'Alchemy::EssenceText' }
-      end
+      let(:element) { FactoryGirl.create(:element, create_contents_after_create: true) }
+      let(:expected_contents) { element.contents.essence_texts }
 
       context "with namespaced essence type" do
-
-        it "should return content by passing a essence type" do
-          @element.all_contents_by_type('Alchemy::EssenceText').should == @contents
-        end
-
+        subject { element.all_contents_by_type('Alchemy::EssenceText') }
+        it { should_not be_empty }
+        it('should return the correct list of essences') { should == expected_contents }
       end
 
       context "without namespaced essence type" do
-
-        it "should return content by passing a essence type" do
-          @element.all_contents_by_type('EssenceText').should == @contents
-        end
-
+        subject { element.all_contents_by_type('EssenceText') }
+        it { should_not be_empty }
+        it('should return the correct list of essences') { should == expected_contents }
       end
 
     end
 
-    describe '#copy' do
+    describe '.copy' do
 
-      let(:element) { FactoryGirl.create(:element, :create_contents_after_create => true) }
+      let(:element) { FactoryGirl.create(:element, :create_contents_after_create => true, :tag_list => 'red, yellow') }
 
       it "should not create contents from scratch" do
         copy = Element.copy(element)
@@ -300,6 +280,11 @@ module Alchemy
       it "should make copies of all contents of source" do
         copy = Element.copy(element)
         copy.contents.collect(&:id).should_not == element.contents.collect(&:id)
+      end
+
+      it "the copy should include source element tags" do
+        copy = Element.copy(element)
+        copy.tag_list.should == element.tag_list
       end
 
     end
@@ -396,6 +381,34 @@ module Alchemy
           @element.belonging_cellnames(@page).should == ['for_other_elements']
         end
 
+      end
+
+    end
+
+    describe '#taggable?' do
+
+      context "description has 'taggable' key with true value" do
+        it "should return true" do
+          element = FactoryGirl.build(:element)
+          element.stub(:description).and_return({'name' => 'article', 'taggable' => true})
+          element.taggable?.should be_true
+        end
+      end
+
+      context "description has 'taggable' key with foo value" do
+        it "should return false" do
+          element = FactoryGirl.build(:element)
+          element.stub(:description).and_return({'name' => 'article', 'taggable' => 'foo'})
+          element.taggable?.should be_false
+        end
+      end
+
+      context "description has no 'taggable' key" do
+        it "should return false" do
+          element = FactoryGirl.build(:element)
+          element.stub(:description).and_return({'name' => 'article'})
+          element.taggable?.should be_false
+        end
       end
 
     end

@@ -111,7 +111,7 @@ if (typeof(Alchemy) === 'undefined') {
     setElementSaved: function(selector) {
       var $element = $(selector);
       Alchemy.setElementClean(selector);
-      Alchemy.enableButton('button.button', $element);
+      Alchemy.Buttons.enable($element);
     },
 
     resizeFrame: function() {
@@ -166,7 +166,7 @@ if (typeof(Alchemy) === 'undefined') {
     },
 
     SelectBox: function(scope) {
-      $('select', scope).selectBoxIt();
+      $('select.alchemy_selectbox', scope).selectBoxIt();
     },
 
     Buttons: function(options) {
@@ -200,9 +200,7 @@ if (typeof(Alchemy) === 'undefined') {
     isFirefox: navigator.userAgent.match(/Firefox/i) !== null,
     isChrome: navigator.userAgent.match(/Chrome/i) !== null,
     isSafari: navigator.userAgent.match(/Safari/i) !== null,
-    isIE: navigator.userAgent.match(/MSIE/i) !== null,
-
-    locale: 'en'
+    isIE: navigator.userAgent.match(/MSIE/i) !== null
 
   });
 

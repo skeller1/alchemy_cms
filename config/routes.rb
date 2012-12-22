@@ -26,7 +26,7 @@ Alchemy::Engine.routes.draw do
   get '/attachment/:id/show' => 'attachments#show',
         :as => :show_attachment
 
-  get "/pictures/:id/show(/:size)(/:crop)(/:crop_from/:crop_size)/:name.:format" => 'pictures#show',
+  get "/pictures/:id/show(/:size)(/:crop)(/:crop_from/:crop_size)(/:quality)/:name.:format" => 'pictures#show',
         :as => :show_picture
   get '/pictures/:id/zoom/:name.:format' => 'pictures#zoom',
         :as => :zoom_picture
@@ -90,7 +90,7 @@ Alchemy::Engine.routes.draw do
         get :edit_multiple
       end
       member do
-        get :show_in_window
+        get :show_in_window, :info
         delete :remove
       end
     end
@@ -116,11 +116,8 @@ Alchemy::Engine.routes.draw do
       end
     end
 
-    resources :essence_videos
-
     resources :languages
 
-    # OHOHOH lovely Rails! Why, oh why I always have to hack thou?
     resource :clipboard, :only => :index, :controller => 'clipboard' do
       collection do
         get :index
@@ -130,13 +127,20 @@ Alchemy::Engine.routes.draw do
       end
     end
 
-    # OHOHOH lovely Rails! Why, oh why I always have to hack thou?
     resource :trash, :only => :index, :controller => 'trash' do
       collection do
         get :index
         delete :clear
       end
     end
+
+    resources :tags do
+      collection do
+        get :autocomplete
+      end
+    end
+
+    resources :sites
 
   end
 

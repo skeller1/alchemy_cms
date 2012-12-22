@@ -90,17 +90,17 @@ module Alchemy
           :id => "search_field"
         }
         options = default_options.merge(options)
-        options[:onkeyup] << ";jQuery('#search_field').val().length >= 1 ? jQuery('.js_filter_field_clear').show() : jQuery('.js_filter_field_clear').hide();"
+        options[:onkeyup] << "; jQuery('##{options[:id]}').val().length >= 1 ? jQuery('.js_filter_field_clear').show() : jQuery('.js_filter_field_clear').hide();"
         filter_field = '<div class="js_filter_field_box">'
         filter_field << text_field_tag("filter", '', options)
         filter_field << content_tag('span', '', :class => 'icon search')
         filter_field << link_to('', '#', {
-          :onclick => "jQuery('##{options[:id]}').val('');#{options[:onkeyup]}",
+          :onclick => "jQuery('##{options[:id]}').val(''); #{options[:onkeyup]}",
           :class => "js_filter_field_clear",
-          :style => "display:none",
+          :style => "display: none",
           :title => t("click_to_show_all")
         })
-        filter_field << %(<label for="search_field">#{t(:search)}</label>)
+        filter_field << %(<label for="#{options[:id]}">#{t(:search)}</label>)
         filter_field << '</div>'
         filter_field.html_safe
       end
@@ -292,7 +292,7 @@ module Alchemy
         if content_for?(:title)
           title = content_for(:title)
         else
-          title = t(controller_name, :scope => :libraries)
+          title = t(controller_name, :scope => :modules)
         end
         "Alchemy CMS - #{title}"
       end
@@ -340,7 +340,7 @@ module Alchemy
       #   :overlay_options        [Hash]                # Overlay options. See link_to_overlay_window helper.
       #   :if_permitted_to        [Array]               # Check permission for button. [:action, :controller]. Exactly how you defined the permission in your +authorization_rules.rb+. Defaults to controller and action from button url.
       #   :skip_permission_check  [Boolean]             # Skip the permission check. Default false. NOT RECOMMENDED!
-      #   :loading_indicator      [Boolean]             # Shows the please wait overlay while loading. Default false.
+      #   :loading_indicator      [Boolean]             # Shows the please wait overlay while loading. Only for buttons not opening an overlay window. Default true.
       #
       def toolbar_button(options = {})
         options.symbolize_keys!
@@ -350,7 +350,7 @@ module Alchemy
           :active => false,
           :link_options => {},
           :overlay_options => {},
-          :loading_indicator => false
+          :loading_indicator => true
         }
         options = defaults.merge(options)
         button = content_tag('div', :class => 'button_with_label' + (options[:active] ? ' active' : '')) do
@@ -365,7 +365,7 @@ module Alchemy
               }
             )
           else
-            link_to options[:url], {:class => "icon_button#{options[:loading_indicator] ? nil : ' please_wait'}", :title => options[:title]}.merge(options[:link_options]) do
+            link_to options[:url], {:class => "icon_button#{options[:loading_indicator] ? ' please_wait' : nil}", :title => options[:title]}.merge(options[:link_options]) do
               render_icon(options[:icon])
             end
           end
@@ -537,6 +537,13 @@ module Alchemy
         end
         return nil if taglist.blank?
         taglist.uniq.join(',')
+      end
+
+      def render_hint_for(element)
+        return unless element.has_hint?
+        link_to '#', :class => 'hint' do
+          render_icon(:hint) + content_tag(:span, element.hint.html_safe, :class => 'bubble')
+        end
       end
 
     end

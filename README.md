@@ -4,14 +4,13 @@ Alchemy CMS
 [![Build Status](https://secure.travis-ci.org/magiclabs/alchemy_cms.png?branch=rails-4)](http://travis-ci.org/magiclabs/alchemy_cms)
 [![Maintenance Status](http://stillmaintained.com/magiclabs/alchemy_cms.png)](http://stillmaintained.com/magiclabs/alchemy_cms)
 [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/magiclabs/alchemy_cms)
-[![Dependency Status](https://gemnasium.com/magiclabs/alchemy_cms.png)](https://gemnasium.com/magiclabs/alchemy_cms)
 
 About
 -----
 
-**This branch is an early alpha development branch. For productive environments use the current rubygems version, or the [latest stable branch (2.2-stable)](https://github.com/magiclabs/alchemy_cms/tree/2.2-stable).**
+**This branch is an early alpha development branch. For productive environments use the current rubygems version, or the [latest stable branch (2.4-stable)](https://github.com/magiclabs/alchemy_cms/tree/2.4-stable).**
 
-Alchemy is a Rails 4 CMS with a flexible content storing architecture.
+Alchemy is a powerful, userfriendly and flexible Rails 4 CMS.
 
 Read more on the [website](http://alchemy-cms.com) and in the [guidelines](http://guides.alchemy-cms.com).
 
@@ -45,12 +44,14 @@ If you are looking for a Rails 3.1 compatible version check the 2.1-stable branc
 
 If you are looking for a Rails 3.0 compatible version check the 2.0-stable branch.
 
-If you are looking for a Rails 2.3 compatible version check the 1.6-stable branch.
+If you are looking for a Rails 2.3 compatible version check the [1.6-stable branch](https://github.com/magiclabs/alchemy_cms/tree/1.6-stable).
 
 Ruby Version
 ------------
 
 Alchemy runs with Ruby >= 1.9.2 and recommends Ruby 1.9.3 for best performance.
+
+For a Ruby 1.8.7 compatible version use the [2.3-stable branch](https://github.com/magiclabs/alchemy_cms/tree/2.3-stable).
 
 Installation
 ------------
@@ -66,20 +67,6 @@ Start the local server:
 
 Then just switch to your browser and open `http://localhost:3000`
 
-Upgrading
-------------
-
-Projects running with Alchemy CMS version < 2.1 needs to be upgraded.
-
-Otherwise errors will be raised like this:
-`uninitialized constant EssenceText`
-
-You have to use the following Upgrade-Task.
-Run in terminal:
-
-    rake alchemy:upgrade
-
-
 Add to existing Rails project
 -----------------------------
 
@@ -89,10 +76,24 @@ In your Gemfile:
 
 Run in terminal:
 
-    bundle install
-    rake alchemy:install:migrations
-    rake db:migrate
-    rake alchemy:db:seed
+    bundle update
+    rake alchemy:install
+
+Note: If you did not mounted Alchemy on the root route `'/'`, then you have to add Alchemy's view helpers manually to your app.
+
+Just paste this in your `app/controllers/application_controller.rb`
+
+`helper Alchemy::PagesHelper`
+
+Upgrading
+---------
+
+After updating Alchemy you should run the upgrader.
+
+Run in terminal:
+
+    rake alchemy:upgrade
+
 
 Tipps
 -----
@@ -114,11 +115,11 @@ Resources
 
 * Homepage: <http://alchemy-cms.com>
 * Live-Demo: <http://demo.alchemy-cms.com> (user: demo, password: demo)
-* Wiki: <http://wiki.alchemy-cms.com>
-* API Documentation: <http://api.alchemy-cms.com>
-* Issue-Tracker: <http://issues.alchemy-cms.com>
-* Sourcecode: <http://source.alchemy-cms.com>
+* API Documentation: <http://rubydoc.info/github/magiclabs/alchemy_cms>
+* Issue-Tracker: <https://github.com/magiclabs/alchemy_cms/issues>
+* Sourcecode: <https://github.com/magiclabs/alchemy_cms>
 * User Group: <http://groups.google.com/group/alchemy-cms>
+* Changelog: <http://revision.io/alchemy_cms>
 
 Authors
 ---------
@@ -126,6 +127,7 @@ Authors
 * Thomas von Deyen: <https://github.com/tvdeyen>
 * Robin Böning: <https://github.com/robinboening>
 * Marc Schettke: <https://github.com/masche842>
+* Hendrik Mans: <https://github.com/hmans>
 * Carsten Fregin: <https://github.com/cfregin>
 
 License
