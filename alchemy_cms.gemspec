@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.authors               = ["Thomas von Deyen", "Robin Boening", "Marc Schettke", "Hendrik Mans", "Carsten Fregin"]
   s.email                 = ["alchemy@magiclabs.de"]
   s.homepage              = "http://alchemy-cms.com"
-  s.summary               = %q{An extremly flexbile CMS for Rails 4}
+  s.summary               = %q{A flexible and userfriendly CMS for Rails 4}
   s.description           = %q{Alchemy is a Rails 3 CMS with a flexible content storing architecture.}
   s.requirements         << 'ImageMagick (libmagick), v6.6 or greater.'
   s.required_ruby_version = '~> 1.9.2'
@@ -32,9 +32,9 @@ POST_INSTALL
   s.executables           = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths         = ["lib"]
 
-  s.add_runtime_dependency %q<rails>,                      ["~> 3.2.8"]
+  s.add_runtime_dependency %q<rails>,                      ["~> 4.0.0.beta"]
   s.add_runtime_dependency %q<authlogic>,                  ["~> 3.1.3"]
-  s.add_runtime_dependency %q<awesome_nested_set>,         ["~> 2.0"]
+  #s.add_runtime_dependency %q<awesome_nested_set>,         ["~> 2.0"]
   s.add_runtime_dependency %q<acts-as-taggable-on>,        ["~> 2.1"]
   s.add_runtime_dependency %q<declarative_authorization>,  ["= 0.5.5"]
   s.add_runtime_dependency %q<dragonfly>,                  ["~> 0.9.12"]
@@ -45,11 +45,11 @@ POST_INSTALL
   s.add_runtime_dependency %q<dynamic_form>,               ["~> 1.1"]
   s.add_runtime_dependency %q<jquery-rails>,               ["~> 2.1.3"]
   s.add_runtime_dependency %q<attachment_magic>,           ["~> 0.2.1"]
-  s.add_runtime_dependency %q<sass-rails>,                 ['~> 3.2.3']
-  s.add_runtime_dependency %q<coffee-rails>,               ['~> 3.2.1']
+  #s.add_runtime_dependency %q<sass-rails>,                 ['~> 3.2.3']
+  #s.add_runtime_dependency %q<coffee-rails>,               ['~> 3.2.1']
   s.add_runtime_dependency %q<compass-rails>,              ['~> 1.0.3']
   s.add_runtime_dependency %q<sassy-buttons>,              ['~> 0.1.3']
-  s.add_runtime_dependency %q<rails3-jquery-autocomplete>, ['~> 1.0.10']
+  #s.add_runtime_dependency %q<rails3-jquery-autocomplete>, ['~> 1.0.10']
 
   s.add_development_dependency %q<bumpy>
   s.add_development_dependency %q<capybara>
