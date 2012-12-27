@@ -1,4 +1,4 @@
-Dummy::Application.routes.draw do
+Rails.application.routes.draw do
 
   get '/404' => 'errors#status_404', :as => :status_404
 

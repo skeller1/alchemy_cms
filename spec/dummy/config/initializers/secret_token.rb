@@ -2,6 +2,11 @@
 
 # Your secret key for verifying the integrity of signed cookies.
 # If you change this key, all old signed cookies will become invalid!
+
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-Dummy::Application.config.secret_token = 'b86ee13015fa1a1238276adbfe8af694f4c204777517b1aa3184c3610e01b3c83f1827363d448c1e8f71bc45ed05529771ef8518da574271fb07ab63dbb315ca'
+# You can use `rake secret` to generate a secure secret key.
+
+# Make sure your secret_key_base is kept private
+# if you're sharing your code publicly.
+Dummy::Application.config.secret_key_base = 'dce6d73688dd478b4c0e356813ca194d1cf57e86e7a4ce13fc92ae3467d96994a494b4901241b94cdf6797557d3ae09c754772ef56e701d78917d5cfcf334934'
