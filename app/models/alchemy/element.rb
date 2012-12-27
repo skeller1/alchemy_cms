@@ -34,15 +34,15 @@ module Alchemy
 
     after_create :create_contents, unless: -> e { e.create_contents_after_create == false }
 
-    scope :trashed,       -> { where(:position => nil).order('updated_at DESC') }
-    scope :not_trashed,   -> { where(Element.arel_table[:position].not_eq(nil)) }
-    scope :published,     -> { where(:public => true) }
-    scope :not_restricted -> { joins(:page).where(alchemy_pages: {restricted: false}) }
-    scope :available,     -> { published.not_trashed }
-    scope :named,         -> names { where(:name => names) }
-    scope :excluded,      -> names { where(arel_table[:name].not_in(names)) }
-    scope :not_in_cell,   -> { where(:cell_id => nil) }
-    scope :in_cell,       -> { where("#{self.table_name}.cell_id IS NOT NULL") }
+    scope :trashed,        -> { where(:position => nil).order('updated_at DESC') }
+    scope :not_trashed,    -> { where(Element.arel_table[:position].not_eq(nil)) }
+    scope :published,      -> { where(:public => true) }
+    scope :not_restricted, -> { joins(:page).where(alchemy_pages: {restricted: false}) }
+    scope :available,      -> { published.not_trashed }
+    scope :named,          -> names { where(:name => names) }
+    scope :excluded,       -> names { where(arel_table[:name].not_in(names)) }
+    scope :not_in_cell,    -> { where(:cell_id => nil) }
+    scope :in_cell,        -> { where("#{self.table_name}.cell_id IS NOT NULL") }
 
     # class methods
     class << self
