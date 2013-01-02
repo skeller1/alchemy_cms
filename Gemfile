@@ -8,6 +8,7 @@ gem 'protected_attributes', :github => 'rails/protected_attributes'
 gem 'actionpack-action_caching', :github => 'rails/actionpack-action_caching'
 gem 'actionpack-page_caching', :github => 'rails/actionpack-page_caching'
 gem 'acts-as-taggable-on', :github => 'tvdeyen/acts-as-taggable-on', :branch => 'rails4'
+gem 'acts_as_list', :github => 'tvdeyen/acts_as_list', :branch => 'ar3-find-syntax-fix'
 
 #For some strange reason it's only loaded outside any group
 #gem 'jasmine'
