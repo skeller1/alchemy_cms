@@ -18,7 +18,7 @@ module Alchemy
     validates_uniqueness_of :name, scope: :page_id
 
     belongs_to :page
-    has_many   :elements, dependent: :destroy, order: :position
+    has_many   :elements, -> { order(:position) }, dependent: :destroy
 
     def self.definitions
       cell_yml = ::File.join(::Rails.root, 'config', 'alchemy', 'cells.yml')
