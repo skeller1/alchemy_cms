@@ -35,7 +35,7 @@ module Alchemy
     scope :published, -> { where(:public => true) }
 
     # multi-site support
-    scope :on_site, lambda { |s| s.present? ? where(site_id: s) : scoped }
+    scope :on_site, lambda { |s| s.present? ? where(site_id: s) : all }
     default_scope { on_site(Site.current) }
 
     class << self
