@@ -1,4 +1,4 @@
-require 'rspec'
+require File.dirname(__FILE__) + '/../../lib/alchemy/config'
 require File.dirname(__FILE__) + '/../../lib/alchemy/resource'
 
 class Event
@@ -90,7 +90,7 @@ module Alchemy
               mock(:column, {:name => 'starts_at', :type => :datetime}),
             ]
             Event.stub(:columns).and_return columns
-            Config.stub(:get).and_return {}
+            ::Alchemy::Config.stub(:get).and_return {}
           end
 
           it "parses and returns the resource-model's attributes from ActiveRecord::ModelSchema" do
