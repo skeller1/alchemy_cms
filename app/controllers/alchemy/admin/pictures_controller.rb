@@ -1,6 +1,7 @@
 module Alchemy
   module Admin
     class PicturesController < Alchemy::Admin::BaseController
+      include ActionController::Caching::Sweeping
       protect_from_forgery :except => [:create]
 
       cache_sweeper Alchemy::PicturesSweeper, :only => [:update, :destroy]

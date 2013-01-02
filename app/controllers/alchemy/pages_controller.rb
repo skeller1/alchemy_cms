@@ -7,6 +7,7 @@ module Alchemy
     # Not the best solution, but's working.
     # Anyone with a better idea please provide a patch.
     include Alchemy::BaseHelper
+    include ActionController::Caching::Actions
 
     rescue_from ActionController::RoutingError, :with => :render_404
 

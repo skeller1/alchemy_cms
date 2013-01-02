@@ -8,6 +8,7 @@ gem 'rails', '4.0.0.beta', :github => 'rails/rails'
 gem 'awesome_nested_set', :github => 'collectiveidea/awesome_nested_set', :branch => 'rails4'
 gem 'protected_attributes', :github => 'rails/protected_attributes'
 gem 'actionpack-action_caching', :github => 'rails/actionpack-action_caching'
+gem 'actionpack-page_caching', :github => 'rails/actionpack-page_caching'
 gem 'rails-observers', :github => 'rails/rails-observers' # For sweepers
 
 #For some strange reason it's only loaded outside any group

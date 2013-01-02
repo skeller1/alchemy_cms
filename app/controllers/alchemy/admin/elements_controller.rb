@@ -1,6 +1,7 @@
 module Alchemy
   module Admin
     class ElementsController < Alchemy::Admin::BaseController
+      include ActionController::Caching::Sweeping
 
       cache_sweeper Alchemy::ContentSweeper, :only => [:create, :update, :destroy]
 
