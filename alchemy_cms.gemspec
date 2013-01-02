@@ -33,6 +33,7 @@ POST_INSTALL
   s.require_paths         = ["lib"]
 
   s.add_runtime_dependency %q<rails>,                      ["~> 4.0.0.beta"]
+  s.add_runtime_dependency %q<rails-observers>,            ["~> 0.1.1"]
   s.add_runtime_dependency %q<authlogic>,                  ["~> 3.1.3"]
   #s.add_runtime_dependency %q<awesome_nested_set>,         ["~> 2.0"]
   #s.add_runtime_dependency %q<acts-as-taggable-on>,        ["~> 2.1"]
