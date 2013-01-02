@@ -1,6 +1,7 @@
 require 'rails'
 
 if defined?(Rails) && Rails::VERSION::MAJOR == 4 && Rails::VERSION::MINOR == 0
+  require 'rails-observers'
   require 'protected_attributes'
   require 'acts_as_list'
   require 'acts-as-taggable-on'
