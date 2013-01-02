@@ -2,14 +2,13 @@ source 'http://rubygems.org'
 
 gemspec
 
-gem 'journey', :github => 'rails/journey'
-gem 'activerecord-deprecated_finders', :github => 'rails/activerecord-deprecated_finders'
 gem 'rails', '4.0.0.beta', :github => 'rails/rails'
 gem 'awesome_nested_set', :github => 'collectiveidea/awesome_nested_set', :branch => 'rails4'
 gem 'protected_attributes', :github => 'rails/protected_attributes'
 gem 'actionpack-action_caching', :github => 'rails/actionpack-action_caching'
 gem 'actionpack-page_caching', :github => 'rails/actionpack-page_caching'
 gem 'rails-observers', :github => 'rails/rails-observers' # For sweepers
+gem 'acts-as-taggable-on', :github => 'tvdeyen/acts-as-taggable-on', :branch => 'rails4'
 
 #For some strange reason it's only loaded outside any group
 #gem 'jasmine'

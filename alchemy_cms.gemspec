@@ -35,7 +35,7 @@ POST_INSTALL
   s.add_runtime_dependency %q<rails>,                      ["~> 4.0.0.beta"]
   s.add_runtime_dependency %q<authlogic>,                  ["~> 3.1.3"]
   #s.add_runtime_dependency %q<awesome_nested_set>,         ["~> 2.0"]
-  s.add_runtime_dependency %q<acts-as-taggable-on>,        ["~> 2.1"]
+  #s.add_runtime_dependency %q<acts-as-taggable-on>,        ["~> 2.1"]
   s.add_runtime_dependency %q<declarative_authorization>,  ["= 0.5.5"]
   s.add_runtime_dependency %q<dragonfly>,                  ["~> 0.9.12"]
   s.add_runtime_dependency %q<kaminari>,                   ["~> 0.13.0"]
