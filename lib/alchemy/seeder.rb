@@ -91,9 +91,9 @@ module Alchemy
       def create_root_page
         desc "Creating root page"
         root = Alchemy::Page.where(
-          :name => 'Root',
-          :do_not_sweep => true
+          :name => 'Root'
         ).first_or_initialize
+        root.do_not_sweep = true
         if root.new_record?
           if root.save!
             log "Created page #{root.name}."
