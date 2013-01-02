@@ -20,46 +20,51 @@ module Alchemy
     belongs_to :page
     has_many   :elements, -> { order(:position) }, dependent: :destroy
 
-    def self.definitions
-      cell_yml = ::File.join(::Rails.root, 'config', 'alchemy', 'cells.yml')
-      ::YAML.load_file(cell_yml)
-    end
+    # class methods
+    class << self
 
-    def self.definition_for(cellname)
-      return nil if cellname.blank?
-      definitions.detect { |c| c['name'] == cellname }
-    end
-
-    def self.all_definitions_for(cellnames)
-      definitions.select { |c| cellnames.include? c['name'] }
-    end
-
-    def self.all_element_definitions_for(cellnames)
-      element_names = []
-      all_definitions_for(cellnames).each do |cell|
-        element_names += cell['elements']
+      def definitions
+        cell_yml = ::File.join(::Rails.root, 'config', 'alchemy', 'cells.yml')
+        ::YAML.load_file(cell_yml)
       end
-      Element.all_definitions_for(element_names.uniq)
-    end
 
-    def self.definitions_for_element(element_name)
-      return [] if definitions.blank?
-      definitions.select { |d| d['elements'].include?(element_name) }
-    end
+      def definition_for(cellname)
+        return nil if cellname.blank?
+        definitions.detect { |c| c['name'] == cellname }
+      end
 
-    def self.names_for_element(element_name)
-      definitions = definitions_for_element(element_name)
-      return nil if definitions.blank?
-      definitions.collect { |d| d['name'] }
-    end
+      def all_definitions_for(cellnames)
+        definitions.select { |c| cellnames.include? c['name'] }
+      end
 
-    def self.translated_label_for(cell_name)
-      I18n.t(cell_name, :scope => :cell_names)
+      def all_element_definitions_for(cellnames)
+        element_names = []
+        all_definitions_for(cellnames).each do |cell|
+          element_names += cell['elements']
+        end
+        Element.all_definitions_for(element_names.uniq)
+      end
+
+      def definitions_for_element(element_name)
+        return [] if definitions.blank?
+        definitions.select { |d| d['elements'].include?(element_name) }
+      end
+
+      def names_for_element(element_name)
+        definitions = definitions_for_element(element_name)
+        return nil if definitions.blank?
+        definitions.collect { |d| d['name'] }
+      end
+
+      def translated_label_for(cell_name)
+        I18n.t(cell_name, :scope => :cell_names)
+      end
+
     end
 
     # Returns the cell definition defined in +config/alchemy/cells.yml+
     def definition
-      self.class.definition_for(self.name)
+      self.class.definition_for(name)
     end
 
     # Returns all elements that can be placed in this cell
@@ -67,8 +72,9 @@ module Alchemy
       definition['elements']
     end
 
+    # Returns the translated name for a label tag.
     def name_for_label
-      self.class.translated_label_for(self.name)
+      self.class.translated_label_for(name)
     end
 
   end
