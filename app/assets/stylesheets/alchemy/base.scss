@@ -374,37 +374,6 @@ div.all_rights {
   margin: 2*$default-padding;
 }
 
-.element_spinner {
-  float: right;
-  height: 23px;
-  position: relative;
-  bottom: 3px;
-  right: -3px;
-}
-
-.element_folder_spinner {
-  position: relative;
-  bottom: 2px;
-  width: 24px;
-  height: 24px;
-  right: -2px;
-}
-
-.element_spinner img {
-  bottom: 1px;
-  float: left;
-  position: relative;
-  width: 24px;
-  height: 24px;
-  right: 0;
-}
-
-span.spinner_wait_text {
-  float: left;
-  position: relative;
-  top: 4px;
-}
-
 div.element_head span.ajax_folder span.error_icon {
   float: left;
   width: 14px;
@@ -451,15 +420,6 @@ p.foot_note {
     width: 800px;
     height: 600px;
     position: relative;
-  }
-
-  .picture_content_spinner {
-    left: 400px;
-    top: 300px;
-    margin-top: -16px;
-    margin-left: -16px;
-    width: 32px;
-    height: 32px;
   }
 
   .jcrop-holder { @include inline-block }

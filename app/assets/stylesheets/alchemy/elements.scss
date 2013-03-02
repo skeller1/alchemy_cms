@@ -1,7 +1,18 @@
-.element_heading .preview_text_quote {
-  font-size: 10px;
-  font-style: italic;
-  line-height: 15px;
+.element_heading {
+  padding: 0;
+  z-index: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: absolute;
+  left: 35px;
+  top: 11px;
+  width: 322px;
+
+  .preview_text_quote {
+    font-size: 10px;
+    font-style: italic;
+    line-height: 15px;
+  }
 }
 
 span.preview_text_element_name {
@@ -9,14 +20,6 @@ span.preview_text_element_name {
   text-shadow: #efefef 1px 1px 1px;
   font-weight: bold;
   line-height: 15px;
-}
-
-img.add_element_spinner {
-  width: 24px;
-  height: 24px;
-  position: absolute;
-  left: 5px;
-  bottom: 6px;
 }
 
 div#element_area {
@@ -160,18 +163,7 @@ div#element_area {
   top: 8px;
 }
 
-.element_heading {
-  padding: 0;
-  z-index: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  position: absolute;
-  left: 35px;
-  top: 11px;
-  width: 322px;
-}
-
-div.element_editor {
+.element_editor {
   border: 1px solid #bba589;
   @extend .rounded-border;
   background-color: #f0e8d7;
@@ -203,7 +195,7 @@ div.element_editor {
     margin-bottom: 1em;
   }
 
-  p.content_editor_error {
+  .content_editor_error {
     border: 1px solid #f5b04e;
     padding: 4px 8px;
     line-height: 21px;
@@ -277,6 +269,11 @@ a.element_move_button {
   height: 20px;
   background-color: #e5dcca;
   @extend .disable-user-select;
+
+  .spinner {
+    top: 9px;
+    right: 9px;
+  }
 }
 
 form.add_gallery_to_index {
@@ -311,14 +308,6 @@ div.picture_thumbnail div.picture_image {
 
 div#cells {
   min-height: 100px;
-}
-
-.place_element_spinner {
-  position: absolute;
-  right: 8px;
-  width: 24px;
-  height: 24px;
-  top: 5px;
 }
 
 span.linkable_essence_tools {
@@ -480,22 +469,6 @@ div.essence_picture_css_class {
   cursor: move;
 }
 
-.picture_content_spinner {
-  background: #666666;
-  height: 93px;
-  left: 4px;
-  position: absolute;
-  top: 4px;
-  width: inherit;
-  img {
-    top: 50%;
-    left: 50%;
-    position: absolute;
-    margin-top: -16px;
-    margin-left: -16px;
-  }
-}
-
 div.file {
   padding: 0;
   margin-top: 8px;
@@ -579,22 +552,10 @@ a.new_content_link {
 div.tinymce_container {
   position: relative;
   margin: $default-margin 0;
-}
 
-div.essence_richtext_loader {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  background-color: #F0E8D7;
-  @include opacity(0.9);
-
-  img {
-    position: absolute;
-    top: 46%;
-    left: 46%;
+  .spinner {
+    top: 70px;
+    left: 50%;
   }
 }
 

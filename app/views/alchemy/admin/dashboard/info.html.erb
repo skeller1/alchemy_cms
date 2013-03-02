@@ -41,17 +41,21 @@
     </li>
   </ul>
 </div>
-<%= javascript_tag do %>
-  $('#load_info').show();
-  $.get('<%= alchemy.update_check_path %>', function(data, textStatus, jqXHR) {
-    if (data == 'true') {
-      $('#update_available').show();
-    } else {
-      $('#up_to_date').show();
-    }
-  }).fail(function(jqXHR, textStatus, errorThrown) {
-    $('#error').show();
-  }).always(function() {
-    $('#load_info').hide();
-  });
-<% end %>
+<script type="text/javascript">
+  (function() {
+    var el = $('#update_check');
+    var spinner = Alchemy.Spinner.small();
+    spinner.spin(el[0]);
+    $.get('<%= alchemy.update_check_path %>', function(data, textStatus, jqXHR) {
+      if (data == 'true') {
+        $('#update_available').show();
+      } else {
+        $('#up_to_date').show();
+      }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+      $('#error').show();
+    }).always(function() {
+      spinner.stop();
+    });
+  })();
+</script>

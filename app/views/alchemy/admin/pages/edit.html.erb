@@ -152,8 +152,9 @@
         }
       ]
     }, function() {
+      Alchemy.ImageLoader('#element_area img');
       Alchemy.SortableElements(<%= @page.id %>, '<%= form_authenticity_token %>');
-      Alchemy.ElementEditorSelector.init();
+      Alchemy.ElementEditors.init();
       Alchemy.SelectBox('.element_editor');
       Alchemy.Tinymce.init(function() {
         Alchemy.ElementDirtyObserver('#element_area');
