@@ -97,7 +97,7 @@ module Alchemy
     scope :flushables, not_locked.published.contentpages
     scope :searchables, not_restricted.published.contentpages
     # Scope for only the pages from Alchemy::Site.current
-    scope :from_current_site, lambda { where(:alchemy_languages => {site_id: Site.current}).joins(:language) }
+    scope :from_current_site, lambda { where(:alchemy_languages => {site_id: Site.current || Site.default}).joins(:language) }
     # TODO: add this as default_scope
     #default_scope { from_current_site }
 
@@ -533,17 +533,21 @@ module Alchemy
       rootpage? || (self.parent_id == Page.root.id && !self.language_root?)
     end
 
+    # Overwrites the cache_key method so it uses the published_at attribute instead of updated_at.
     def cache_key(request = nil)
-      if timestamp = updated_at
-        timestamp = timestamp.utc.to_s(:number)
-        "alchemy/pages/#{id}-#{timestamp}"
-      else
-        "alchemy/pages/#{id}"
-      end
+      "alchemy/pages/#{id}"
     end
 
     def taggable?
       definition['taggable'] == true
+    end
+
+    # Publishes the page
+    #
+    # Sets public true and saves the object.
+    def publish!
+      self.public = true
+      self.save
     end
 
   private

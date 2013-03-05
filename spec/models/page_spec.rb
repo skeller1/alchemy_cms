@@ -185,7 +185,7 @@ module Alchemy
             page.save!
             page.legacy_urls.should be_empty
           end
-          
+
         end
 
       end
@@ -692,7 +692,7 @@ module Alchemy
     end
 
     describe '.copy' do
-      let (:page) { FactoryGirl.create(:page, :name => 'Source') }
+      let(:page) { FactoryGirl.create(:page, :name => 'Source') }
       subject { Page.copy(page) }
 
       it "the copy should have added (copy) to name" do
@@ -753,6 +753,21 @@ module Alchemy
         it "should take this name" do
           subject.name.should == 'Different name'
         end
+      end
+    end
+
+    describe "#cache_key" do
+      let(:page) { stub_model(Page) }
+      subject { page }
+      its(:cache_key) { should match(page.id.to_s) }
+    end
+
+    describe "#publish!" do
+      let(:page) { stub_model(Page, public: false, name: "page", parent_id: 1, urlname: "page", language: stub_model(Language), page_layout: "bla") }
+      before { page.publish! }
+
+      it "sets public attribute to true" do
+        page.public.should == true
       end
     end
 

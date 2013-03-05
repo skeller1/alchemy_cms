@@ -32,9 +32,9 @@ module Alchemy
         convert_essence_texts_to_essence_selects
         convert_essence_texts_to_essence_booleans
         copy_new_config_file
+        gallery_pictures_change_notice
         removed_richmedia_essences_notice
         convert_picture_storage
-        upgrade_to_sites
         removed_standard_set_notice
         renamed_t_method
         migrated_to_devise
@@ -52,20 +52,6 @@ module Alchemy
       end
 
     private
-
-      def upgrade_to_sites
-        desc "Creating default site and migrating existing languages to it"
-        if Site.count == 0
-          Alchemy::Site.transaction do
-            site = Alchemy::Site.new(host: '*', name: 'Default Site')
-            site.languages << Alchemy::Language.all
-            site.save!
-            log "Done."
-          end
-        else
-          log "Site(s) already present.", :skip
-        end
-      end
 
       # Creates Language model if it does not exist (Alchemy CMS prior v1.5)
       # Also creates missing associations between pages and languages
@@ -235,6 +221,17 @@ module Alchemy
           log "Copied new default configuration file."
           todo "Check the default configuration file (./config/alchemy/config.yml.defaults) for new configuration options and insert them into your config file."
         end
+      end
+
+      def gallery_pictures_change_notice
+        txt = ["We have changed the way Alchemy handles EssencePictures in elements."]
+        txt << "It is now possible to have single EssencePictures and galleries side by side in the same element."
+        txt << "All element editor views containing render_picture_editor with option `maximum_amount_of_images => 1` must be changed into render_essence_editor_by_name."
+        txt << "In the yml description of these elements add a new content for this picture."
+        txt << "\nIn order to upgrade your elements in the database run:"
+        txt << "\nrails g alchemy:gallery_pictures_migration\n"
+        txt << "and alter `db/seeds.rb`, so that it contains all elements that have essence pictures."
+        todo txt.join("\n")
       end
 
       def removed_richmedia_essences_notice
