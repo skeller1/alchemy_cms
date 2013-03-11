@@ -16,6 +16,8 @@ pictures.configure do |config|
   config.url_format = '/pictures/:job/:basename.:format'
 end
 
+
+
 # Attachments
 attachments = Dragonfly[:alchemy_attachments]
 attachments.configure_with :rails
@@ -25,4 +27,17 @@ attachments.configure do |config|
     store.root_path = Rails.root.join('uploads/attachments').to_s
     store.store_meta = false
   end
+end
+
+if Alchemy::Config.get(:s3backend)==true
+ [pictures, attachments].each do |app_name| 
+  app_name.datastore = ::Dragonfly::DataStorage::S3DataStore.new
+  app_name.datastore.configure do |s3|
+     s3.bucket_name = Alchemy::Config.get(:s3_bucket) || ENV['S3_BUCKET']
+     s3.access_key_id = Alchemy::Config.get(:s3_key) || ENV['S3_KEY']
+     s3.secret_access_key = Alchemy::Config.get(:s3_secret) || ENV['S3_SECRET']
+     # S3 Region otherwise defaults to 'us-east-1'
+     s3.region = Alchemy::Config.get(:s3_region) || ENV['S3_REGION']# || 'eu-west-1'
+  end
+ end
 end
