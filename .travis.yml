@@ -4,18 +4,17 @@ rvm:
   - 2.0.0
 branches:
   only:
-    - 2.5-stable
+    - master
 before_script:
-  - sudo spec/support/ci/install_phantomjs
-  - "export PATH=phantomjs/bin:$PATH"
+  # - sudo spec/support/ci/install_phantomjs
+  # - "export PATH=phantomjs/bin:$PATH"
   - phantomjs --version
   - "sh -c 'cd spec/dummy && RAILS_ENV=test bundle exec rake db:create db:schema:load --trace'"
 script: "bundle exec rspec spec $SPEC_FLAGS"
 env:
-  - DB=mysql SPEC_FLAGS="-t ~type:request"
-  - DB=postgresql SPEC_FLAGS="-t ~type:request"
-  - DB=mysql SPEC_FLAGS="-t type:request"
+  - DB=mysql SPEC_FLAGS="-t ~type:feature"
+  - DB=postgresql SPEC_FLAGS="-t ~type:feature"
+  - DB=mysql SPEC_FLAGS="-t type:feature"
 matrix:
   allow_failures:
-    - env: DB=mysql SPEC_FLAGS="-t type:request"
-    - rvm: 2.0.0
+    - env: DB=mysql SPEC_FLAGS="-t type:feature"

@@ -32,19 +32,19 @@ POST_INSTALL
   s.executables           = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths         = ["lib"]
 
-  s.add_runtime_dependency %q<rails>,                      ["~> 3.2.12"]
+  s.add_runtime_dependency %q<rails>,                      ["~> 3.2.13"]
   s.add_runtime_dependency %q<devise>,                     ["~> 2.2.3"]
   s.add_runtime_dependency %q<devise-encryptable>,         ["~> 0.1.1"]
   s.add_runtime_dependency %q<awesome_nested_set>,         ["~> 2.0"]
   s.add_runtime_dependency %q<acts-as-taggable-on>,        ["~> 2.1"]
-  s.add_runtime_dependency %q<declarative_authorization>,  ["= 0.5.5"]
+  s.add_runtime_dependency %q<declarative_authorization>,  ["~> 0.5.7"]
   s.add_runtime_dependency %q<dragonfly>,                  ["~> 0.9.14"]
   s.add_runtime_dependency %q<kaminari>,                   ["~> 0.13.0"]
   s.add_runtime_dependency %q<acts_as_ferret>,             ["~> 0.5"]
-  s.add_runtime_dependency %q<acts_as_list>,               ["~> 0.1.9"]
+  s.add_runtime_dependency %q<acts_as_list>,               ["~> 0.2.0"]
   s.add_runtime_dependency %q<magiclabs-userstamp>,        ["~> 2.0.2"]
   s.add_runtime_dependency %q<dynamic_form>,               ["~> 1.1"]
-  s.add_runtime_dependency %q<jquery-rails>,               ["~> 2.1.3"]
+  s.add_runtime_dependency %q<jquery-rails>,               ["~> 2.2.1"]
   s.add_runtime_dependency %q<jquery-ui-rails>,            ["~> 3.0.1"]
   s.add_runtime_dependency %q<sass-rails>,                 ['~> 3.2.3']
   s.add_runtime_dependency %q<coffee-rails>,               ['~> 3.2.1']
@@ -54,7 +54,7 @@ POST_INSTALL
   s.add_runtime_dependency %q<handles_sortable_columns>,   ['~> 0.1.4']
 
   s.add_development_dependency %q<bumpy>
-  s.add_development_dependency %q<capybara>
+  s.add_development_dependency %q<capybara>,               ['~> 2.0.2']
   s.add_development_dependency %q<factory_girl_rails>
   s.add_development_dependency %q<rspec-rails>,            ['2.12.0']
   s.add_development_dependency %q<sqlite3>
